@@ -75,7 +75,7 @@ class Trainer():
         self.model.train()
         for epoch in range(self.train_cfg['trainer']['epochs']):
             loss_total, loss_box, loss_cls, loss_dfl = 0.0, 0.0, 0.0, 0.0
-            for batch in tqdm(self.train_dl, desc=f"Epoch {epoch + 1}/{self.train_cfg['trainer']['epochs']}"):
+            for batch in tqdm(self.train_dl, desc=f"Epoch {epoch + 1}/{self.train_cfg['trainer']['epochs']}", dynamic_ncols=True):
                 images = batch["img"]
                 images = images.to(self.device)
                 
@@ -116,8 +116,8 @@ class Trainer():
             total = self.total_val
         
         with torch.no_grad():
-            i = 0
-            for batch in tqdm(dl, desc="Validating"):
+            sample = 0
+            for batch in tqdm(dl, desc="Validating", dynamic_ncols=True):
                 images = batch["img"]
                 images = images.to(self.device)
                 pred, _ = self.model(images)
@@ -144,8 +144,8 @@ class Trainer():
 
                     target_list.append(targets_i)
 
-                i += 1
-                if split == "train" and i >= total:
+                sample += 1
+                if split == "train" and sample >= total:
                     break
 
         num_classes = 3

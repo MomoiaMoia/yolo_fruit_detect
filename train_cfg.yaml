@@ -4,8 +4,8 @@ trainer:
   log_dir: 'logs'
   ckpt_dir: 'ckpts'
 
-  metric_every: 5
-  save_every: 10
+  metric_every: 1
+  save_every: 1
 
 dataset:
   batch_size: 4
