@@ -1,0 +1,12 @@
+trainer:
+  lr: 0.0001
+  epochs: 100
+  log_dir: 'logs'
+  ckpt_dir: 'ckpts'
+
+  metric_every: 5
+  save_every: 10
+
+dataset:
+  batch_size: 4
+  num_workers: 4

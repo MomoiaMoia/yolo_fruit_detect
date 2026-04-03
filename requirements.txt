@@ -1,0 +1,13 @@
+# pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cu128
+tensorboardX
+tensorboard
+PyYAML
+timm
+scipy
+opencv-python
+huggingface-hub
+tqdm
+thop
+requests
+matplotlib
+psutil
