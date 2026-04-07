@@ -1,8 +1,10 @@
 trainer:
+  device: 'cpu' # 'cpu' or 'cuda'
   lr: 0.0001
   epochs: 100
   log_dir: 'logs'
   ckpt_dir: 'ckpts'
+  dataset_dir: './strawberry_cls'
 
   metric_every: 1
   save_every: 1

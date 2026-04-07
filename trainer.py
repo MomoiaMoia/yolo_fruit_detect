@@ -32,21 +32,26 @@ def seed_everything(seed):
     
     
 class Trainer():
-    def __init__(self, model_cfg_path, train_cfg_path, device):
+    def __init__(self, model_cfg_path, train_cfg_path):
         seed_everything(42)
-        self.device = device
         
         default_cfg = yaml.load(open(r"ultralytics\cfg\default.yaml", 'r'), Loader=yaml.FullLoader)
+        self.train_cfg = yaml.load(open(train_cfg_path, 'r'), Loader=yaml.FullLoader)
         model_cfg = yaml.load(open(model_cfg_path, 'r'), Loader=yaml.FullLoader)
         model_cfg["scale"] = "n"
+        
+        self.device = torch.device(self.train_cfg['trainer']['device'])
+        if self.device.type == 'cuda' and not torch.cuda.is_available():
+            print(" [!!!] Config asigned to use CUDA but no GPU found. Falling back to CPU.")
+            self.device = torch.device('cpu')
+
         self.model = DetectionModel(cfg=model_cfg, ch=3, verbose=False).to(self.device)
         self.model.args = SimpleNamespace(**{**default_cfg, **model_cfg})
 
-        self.train_cfg = yaml.load(open(train_cfg_path, 'r'), Loader=yaml.FullLoader)
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.train_cfg['trainer']['lr'])
         self.loss = self.model.init_criterion()
         
-        images = glob.glob(r'strawberry_cls\images\*.jpg') 
+        images = glob.glob(osp.join(self.train_cfg['trainer']['dataset_dir'], 'images', '*.jpg')) 
         train_images = images[:int(0.8 * len(images))]
         val_images = images[int(0.8 * len(images)):int(0.9 * len(images))]
         test_images = images[int(0.9 * len(images)):]
