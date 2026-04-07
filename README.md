@@ -22,3 +22,6 @@ strawberry_cls
 
 执行 ```python main.py```
 
+### 检查日志
+
+执行 ```tensorboard --logdir logs```
