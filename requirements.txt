@@ -11,3 +11,4 @@ thop
 requests
 matplotlib
 psutil
+albumentations

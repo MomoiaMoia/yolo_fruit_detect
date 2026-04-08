@@ -1,11 +1,9 @@
-import glob
-
 import torch
+import albumentations as A
+import numpy as np
 
-from os import path as osp
 from PIL import Image
 
-from torchvision import transforms
 
 def polygan2box(text, format='xyxy'):
     text = text.replace("\n", "").split(" ")
@@ -22,25 +20,49 @@ def polygan2box(text, format='xyxy'):
         return [class_id, x_min, y_min, x_max - x_min, y_max - y_min]
     elif format == 'cxcywh':
         return [class_id, (x_min + x_max) / 2, (y_min + y_max) / 2, x_max - x_min, y_max - y_min]
-
-trans_image = transforms.Compose([
-    transforms.ToTensor(),
-])
+    
+aug = A.Compose([
+    # 1st
+    A.Affine(translate_percent=(-0.0625, 0.0625), scale=(0.9, 1.1), rotate=(-10, 10), p=0.5),
+    A.RandomSizedBBoxSafeCrop(640, 640, p=0.3),
+    # 2nd
+    A.Blur(p=0.01),
+    A.MedianBlur(p=0.01),
+    A.ToGray(p=0.01),
+    A.CLAHE(p=0.01),
+    A.RandomBrightnessContrast(p=0.01),
+    A.RandomGamma(p=0.01),
+    A.ImageCompression(compression_type='jpeg', quality_range=(75, 100), p=0.01),
+    # 3rd
+    A.HorizontalFlip(p=0.5),
+    A.VerticalFlip(p=0.5),
+    # normalize and to tensor
+    A.Normalize(mean=(0,0,0), std=(1,1,1), max_pixel_value=255.0),
+    A.pytorch.ToTensorV2()
+], bbox_params=A.BboxParams(format='yolo', label_fields=['class_labels']))
 
 class StrawberryDataset(torch.utils.data.Dataset):
-    def __init__(self, image_paths):
+    def __init__(self, image_paths, augment=False):
         self.image_paths = image_paths
+        self.augment = augment
         image2label = lambda x: x.replace('.jpg', '.txt').replace('images', 'labels')
         self.label_paths = [image2label(image_path) for image_path in self.image_paths]
         
     def __getitem__(self, index):
         image_path = self.image_paths[index]
-        image = Image.open(image_path).convert('RGB')
-        image = trans_image(image)
+        image = np.asarray(Image.open(image_path).convert('RGB'))
 
         label_path = self.label_paths[index]
         lines = open(label_path, 'r').readlines()
         labels = [polygan2box(line, format='cxcywh') for line in lines]
+
+        if self.augment:
+            class_labels = [label[0] for label in labels]
+            bboxes = [label[1:] for label in labels]
+            augmented = aug(image=image, bboxes=bboxes, class_labels=class_labels)
+            image = augmented["image"]
+            labels = [[c, *bbox] for c, bbox in zip(augmented["class_labels"], augmented["bboxes"])]
+        
         return image, labels
 
     @staticmethod

@@ -56,13 +56,13 @@ class Trainer():
         val_images = images[int(0.8 * len(images)):int(0.9 * len(images))]
         test_images = images[int(0.9 * len(images)):]
         
-        self.train_ds = StrawberryDataset(train_images)
+        self.train_ds = StrawberryDataset(train_images, augment=True)
         self.train_dl = DataLoader(self.train_ds, batch_size=self.train_cfg['dataset']['batch_size'],
                                    shuffle=True,collate_fn=StrawberryDataset.collate_fn)
-        self.val_ds = StrawberryDataset(val_images)
+        self.val_ds = StrawberryDataset(val_images, augment=False)
         self.val_dl = DataLoader(self.val_ds, batch_size=self.train_cfg['dataset']['batch_size'],
                                  shuffle=False, collate_fn=StrawberryDataset.collate_fn)
-        self.test_ds = StrawberryDataset(test_images)
+        self.test_ds = StrawberryDataset(test_images, augment=False)
         self.test_dl = DataLoader(self.test_ds, batch_size=1, shuffle=False,
                                   collate_fn=StrawberryDataset.collate_fn)
 
