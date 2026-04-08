@@ -1,7 +1,7 @@
 trainer:
-  device: 'cpu' # 'cpu' or 'cuda'
+  device: 'cuda' # 'cpu' or 'cuda'
   lr: 0.0001
-  epochs: 100
+  epochs: 300
   log_dir: 'logs'
   ckpt_dir: 'ckpts'
   dataset_dir: './strawberry_cls'
@@ -10,5 +10,5 @@ trainer:
   save_every: 1
 
 dataset:
-  batch_size: 4
+  batch_size: 32
   num_workers: 4

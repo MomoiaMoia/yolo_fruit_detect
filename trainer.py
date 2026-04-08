@@ -156,14 +156,14 @@ class Trainer():
         num_classes = 3
         metrics = mean_ap(pred_list, target_list, num_classes=num_classes)
 
-        self.writer.add_scalar("Val/Precision", metrics["precision"], epoch)
-        self.writer.add_scalar("Val/Recall", metrics["recall"], epoch)
-        self.writer.add_scalar("Val/F1", metrics["f1"], epoch)
-        self.writer.add_scalar("Val/mAP50", metrics["map50"], epoch)
-        self.writer.add_scalar("Val/mAP50_95", metrics["map50_95"], epoch)
+        self.writer.add_scalar(f"{split.upper()}/Precision", metrics["precision"], epoch)
+        self.writer.add_scalar(f"{split.upper()}/Recall", metrics["recall"], epoch)
+        self.writer.add_scalar(f"{split.upper()}/F1", metrics["f1"], epoch)
+        self.writer.add_scalar(f"{split.upper()}/mAP50", metrics["map50"], epoch)
+        self.writer.add_scalar(f"{split.upper()}/mAP50_95", metrics["map50_95"], epoch)
 
         print(
-            f"Val Precision: {metrics['precision']:.4f}, Recall: {metrics['recall']:.4f}, "
+            f"{split.upper()} Precision: {metrics['precision']:.4f}, Recall: {metrics['recall']:.4f}, "
             f"F1: {metrics['f1']:.4f}, mAP50: {metrics['map50']:.4f}, mAP50-95: {metrics['map50_95']:.4f}"
         )
         
