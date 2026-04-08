@@ -37,9 +37,8 @@ aug = A.Compose([
     A.HorizontalFlip(p=0.5),
     A.VerticalFlip(p=0.5),
     # normalize and to tensor
-    A.Normalize(mean=(0,0,0), std=(1,1,1), max_pixel_value=255.0),
-    A.pytorch.ToTensorV2()
 ], bbox_params=A.BboxParams(format='yolo', label_fields=['class_labels']))
+
 
 class StrawberryDataset(torch.utils.data.Dataset):
     def __init__(self, image_paths, augment=False):
@@ -63,6 +62,7 @@ class StrawberryDataset(torch.utils.data.Dataset):
             image = augmented["image"]
             labels = [[c, *bbox] for c, bbox in zip(augmented["class_labels"], augmented["bboxes"])]
         
+        image = torch.from_numpy(image).permute(2, 0, 1).float().div_(255.0)
         return image, labels
 
     @staticmethod
