@@ -52,9 +52,12 @@ class Trainer():
         self.loss = self.model.init_criterion()
         
         images = glob.glob(osp.join(self.train_cfg['trainer']['dataset_dir'], 'images', '*.jpg')) 
+        np.random.shuffle(images)
         train_images = images[:int(0.8 * len(images))]
-        val_images = images[int(0.8 * len(images)):int(0.9 * len(images))]
-        test_images = images[int(0.9 * len(images)):]
+        # val_images = images[int(0.8 * len(images)):int(0.9 * len(images))]
+        # test_images = images[int(0.9 * len(images)):]
+        val_images = images[int(0.8 * len(images)):]
+        test_images = images[int(0.8 * len(images)):]
         
         self.train_ds = StrawberryDataset(train_images, augment=True)
         self.train_dl = DataLoader(self.train_ds, batch_size=self.train_cfg['dataset']['batch_size'],
