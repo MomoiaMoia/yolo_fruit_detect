@@ -1,6 +1,7 @@
 trainer:
   device: 'cuda' # 'cpu' or 'cuda'
   lr: 0.01
+  wd: 0.0001
   epochs: 1000
   log_dir: 'logs'
   ckpt_dir: 'ckpts'

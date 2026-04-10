@@ -35,7 +35,7 @@ class Trainer():
     def __init__(self, model_cfg_path, train_cfg_path):
         seed_everything(42)
         
-        default_cfg = yaml.load(open(r"ultralytics\cfg\default.yaml", 'r'), Loader=yaml.FullLoader)
+        default_cfg = yaml.load(open("ultralytics/cfg/default.yaml", 'r'), Loader=yaml.FullLoader)
         self.train_cfg = yaml.load(open(train_cfg_path, 'r'), Loader=yaml.FullLoader)
         model_cfg = yaml.load(open(model_cfg_path, 'r'), Loader=yaml.FullLoader)
         model_cfg["scale"] = "n"
@@ -48,7 +48,15 @@ class Trainer():
         self.model = DetectionModel(cfg=model_cfg, ch=3, verbose=False).to(self.device)
         self.model.args = SimpleNamespace(**{**default_cfg, **model_cfg})
 
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.train_cfg['trainer']['lr'])
+        self.optimizer = torch.optim.AdamW(self.model.parameters(), 
+                                          lr=self.train_cfg['trainer']['lr'],
+                                          weight_decay=self.train_cfg['trainer']['wd'],
+                                          betas=(0.5, 0.999))
+        self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimizer, 
+                                                                    T_max=self.train_cfg['trainer']['epochs'],
+                                                                    eta_min=self.train_cfg['trainer']['lr'] * 0.01,
+                                                                    last_epoch=-1)
+
         self.loss = self.model.init_criterion()
         
         images = glob.glob(osp.join(self.train_cfg['trainer']['dataset_dir'], 'images', '*.jpg')) 
@@ -108,7 +116,9 @@ class Trainer():
                 self.validate(epoch, split="val")
             if (epoch + 1) % self.train_cfg['trainer']['save_every'] == 0:
                 self._save_all(epoch)
-        
+
+            self.scheduler.step()
+
         self._save_all(self.train_cfg['trainer']['epochs'])
 
     def validate(self, epoch=0, split="val"):
@@ -129,7 +139,7 @@ class Trainer():
                 images = batch["img"]
                 images = images.to(self.device)
                 pred, _ = self.model(images)
-                pred = ops.non_max_suppression(pred, conf_thres=0.001, iou_thres=0.45)
+                pred = ops.non_max_suppression(pred, conf_thres=0.25, iou_thres=0.45)
 
                 batch_size = images.shape[0]
                 img_h, img_w = images.shape[2], images.shape[3]
@@ -179,6 +189,7 @@ class Trainer():
             'epoch': epoch,
             'model': self.model.state_dict(),
             'optimizer': self.optimizer.state_dict(),
+            'scheduler': self.scheduler.state_dict(),
         }, ckpt_path)
 
     def _reset_folders(self):
