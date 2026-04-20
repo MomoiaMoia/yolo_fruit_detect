@@ -16,7 +16,8 @@ from tensorboardX import SummaryWriter
 
 from ultralytics.nn.tasks import DetectionModel
 from ultralytics.utils import ops
-from datasets import StrawberryDataset
+# from datasets import StrawberryDataset
+from ultralytics.data.build import build_yolo_dataset
 from metrics import mean_ap, SpeedMeter, Timer
 
 def seed_everything(seed):
@@ -48,10 +49,11 @@ class Trainer():
         self.model = DetectionModel(cfg=model_cfg, ch=3, verbose=False).to(self.device)
         self.model.args = SimpleNamespace(**{**default_cfg, **model_cfg})
 
-        self.optimizer = torch.optim.AdamW(self.model.parameters(), 
+        self.optimizer = torch.optim.Adam(self.model.parameters(), 
                                           lr=self.train_cfg['trainer']['lr'],
                                           weight_decay=self.train_cfg['trainer']['wd'],
-                                          betas=(0.5, 0.999))
+                                          betas=self.train_cfg['trainer']['betas'])
+
         self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimizer, 
                                                                     T_max=self.train_cfg['trainer']['epochs'],
                                                                     eta_min=self.train_cfg['trainer']['lr'] * 0.01,
@@ -59,28 +61,35 @@ class Trainer():
 
         self.loss = self.model.init_criterion()
         
-        images = glob.glob(osp.join(self.train_cfg['trainer']['dataset_dir'], 'images', '*.jpg')) 
-        np.random.shuffle(images)
-        train_images = images[:int(0.8 * len(images))]
-        # val_images = images[int(0.8 * len(images)):int(0.9 * len(images))]
-        # test_images = images[int(0.9 * len(images)):]
-        val_images = images[int(0.8 * len(images)):]
-        test_images = images[int(0.8 * len(images)):]
+        self.train_ds = build_yolo_dataset(SimpleNamespace(**default_cfg), 
+                                           img_path=osp.join(self.train_cfg['dataset']['root_dir'], "train"), 
+                                           batch=self.train_cfg['dataset']['batch_size'], 
+                                           data=self.train_cfg['dataset'],
+                                           mode="train")
+        self.val_ds = build_yolo_dataset(SimpleNamespace(**default_cfg), 
+                                         img_path=osp.join(self.train_cfg['dataset']['root_dir'], "val"), 
+                                         batch=1, 
+                                         data=self.train_cfg['dataset'], 
+                                         mode="val")
         
-        self.train_ds = StrawberryDataset(train_images, augment=True)
-        self.train_dl = DataLoader(self.train_ds, batch_size=self.train_cfg['dataset']['batch_size'],
-                                   shuffle=True,collate_fn=StrawberryDataset.collate_fn)
-        self.val_ds = StrawberryDataset(val_images, augment=False)
-        self.val_dl = DataLoader(self.val_ds, batch_size=self.train_cfg['dataset']['batch_size'],
-                                 shuffle=False, collate_fn=StrawberryDataset.collate_fn)
-        self.test_ds = StrawberryDataset(test_images, augment=False)
-        self.test_dl = DataLoader(self.test_ds, batch_size=1, shuffle=False,
-                                  collate_fn=StrawberryDataset.collate_fn)
-
+        self.train_dl = DataLoader(self.train_ds, 
+                                   batch_size=self.train_cfg['dataset']['batch_size'], 
+                                   shuffle=True, 
+                                   num_workers=self.train_cfg['dataset']['num_workers'], 
+                                   persistent_workers=True,
+                                   pin_memory=True,
+                                   collate_fn=self.train_ds.collate_fn)
+        self.val_dl = DataLoader(self.val_ds, 
+                                 batch_size=1, 
+                                 shuffle=False,
+                                 num_workers=self.train_cfg['dataset']['num_workers'],
+                                 persistent_workers=True,
+                                 pin_memory=True,
+                                 collate_fn=self.val_ds.collate_fn)
+        
         self.total_train = len(self.train_dl)
         self.total_val = len(self.val_dl)
-        self.total_test = len(self.test_dl)
-
+        
         self._reset_folders()
         
         EXP_TIME = time.strftime("%Y%m%d-%H%M%S")
@@ -92,7 +101,7 @@ class Trainer():
         for epoch in range(self.train_cfg['trainer']['epochs']):
             loss_total, loss_box, loss_cls, loss_dfl = 0.0, 0.0, 0.0, 0.0
             for batch in tqdm(self.train_dl, desc=f"Epoch {epoch + 1}/{self.train_cfg['trainer']['epochs']}", dynamic_ncols=True):
-                images = batch["img"]
+                images = batch["img"].float() / 255.0
                 images = images.to(self.device)
                 
                 self.optimizer.zero_grad()
@@ -136,7 +145,7 @@ class Trainer():
         with torch.no_grad():
             sample = 0
             for batch in tqdm(dl, desc="Validating", dynamic_ncols=True):
-                images = batch["img"]
+                images = batch["img"].float() / 255.0
                 images = images.to(self.device)
                 pred, _ = self.model(images)
                 pred = ops.non_max_suppression(pred, conf_thres=0.25, iou_thres=0.45)

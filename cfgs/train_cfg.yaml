@@ -1,15 +1,20 @@
 trainer:
   device: 'cuda' # 'cpu' or 'cuda'
-  lr: 0.01
-  wd: 0.0001
+  lr: 0.001
+  wd: 0
+  betas: [0.9, 0.999]
   epochs: 1000
   log_dir: 'logs'
   ckpt_dir: 'ckpts'
-  dataset_dir: './strawberry_cls'
 
   metric_every: 20
   save_every: 50
 
 dataset:
-  batch_size: 64
-  num_workers: 4
+  names:
+    0: Fullripe
+    1: Semiripe
+    2: Unripe
+  root_dir: 'strawberry_cls'
+  batch_size: 8
+  num_workers: 1
