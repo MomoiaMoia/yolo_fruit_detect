@@ -16,6 +16,7 @@ from tensorboardX import SummaryWriter
 
 from ultralytics.nn.tasks import DetectionModel
 from ultralytics.utils import ops
+from ultralytics.utils.torch_utils import one_cycle
 # from datasets import StrawberryDataset
 from ultralytics.data.build import build_yolo_dataset
 from metrics import mean_ap, SpeedMeter, Timer
@@ -54,19 +55,24 @@ class Trainer():
                                           weight_decay=self.train_cfg['trainer']['wd'],
                                           betas=self.train_cfg['trainer']['betas'])
 
-        self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(self.optimizer, 
-                                                                    T_max=self.train_cfg['trainer']['epochs'],
-                                                                    eta_min=self.train_cfg['trainer']['lr'] * 0.01,
-                                                                    last_epoch=-1)
+        epochs = self.train_cfg['trainer']['epochs']
+        lrf = self.train_cfg['trainer']['lrf']
+        cos_lr = self.train_cfg['trainer']['cos_lr']
+        if cos_lr:
+            lf = one_cycle(1, lrf, epochs)
+        else:
+            lf = lambda x: max(1 - x / epochs, 0) * (1.0 - lrf) + lrf
+        self.scheduler = torch.optim.lr_scheduler.LambdaLR(self.optimizer, lr_lambda=lf)
 
         self.loss = self.model.init_criterion()
         
-        self.train_ds = build_yolo_dataset(SimpleNamespace(**default_cfg), 
+        self.train_ds = build_yolo_dataset(SimpleNamespace(**{**default_cfg, **self.train_cfg["augmentation"]}), 
                                            img_path=osp.join(self.train_cfg['dataset']['root_dir'], "train"), 
                                            batch=self.train_cfg['dataset']['batch_size'], 
                                            data=self.train_cfg['dataset'],
                                            mode="train")
-        self.val_ds = build_yolo_dataset(SimpleNamespace(**default_cfg), 
+        
+        self.val_ds = build_yolo_dataset(SimpleNamespace(**{**default_cfg, **self.train_cfg["augmentation"]}), 
                                          img_path=osp.join(self.train_cfg['dataset']['root_dir'], "val"), 
                                          batch=1, 
                                          data=self.train_cfg['dataset'], 
