@@ -48,6 +48,14 @@ class Trainer():
             self.device = torch.device('cpu')
 
         self.model = DetectionModel(cfg=model_cfg, ch=3, verbose=False).to(self.device)
+
+        for m in self.model.modules():
+            if isinstance(m, torch.nn.Dropout):
+                print(f"Setting dropout probability for {m}: {m.p}")
+                m.p = 0.3
+            if m.__class__.__name__ == "DropPath":
+                m.drop_prob = 0.1
+
         self.model.args = SimpleNamespace(**{**default_cfg, **model_cfg})
 
         self.optimizer = torch.optim.Adam(self.model.parameters(), 
