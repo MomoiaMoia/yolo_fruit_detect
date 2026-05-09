@@ -18,8 +18,8 @@ dataset:
     1: Semiripe
     2: Unripe
   root_dir: 'strawberry_cls'
-  batch_size: 1
-  num_workers: 1
+  batch_size: 16
+  num_workers: 8
 
 augmentation:
   hsv_h: 0.015 # (float) image HSV-Hue augmentation (fraction)
@@ -27,8 +27,7 @@ augmentation:
   hsv_v: 0.4 # (float) image HSV-Value augmentation (fraction)
   degrees: 0.0 # (float) image rotation (+/- deg)
   translate: 0.1 # (float) image translation (+/- fraction)
-  # scale: 0.5 # (float) image scale (+/- gain)
-  scale: 0.9 # (float) image scale (+/- gain)
+  scale: 0.5 # (float) image scale (+/- gain)
   shear: 0.0 # (float) image shear (+/- deg)
   perspective: 0.0 # (float) image perspective (+/- fraction), range 0-0.001
   flipud: 0.0 # (float) image flip up-down (probability)
@@ -36,10 +35,8 @@ augmentation:
   bgr: 0.0 # (float) image channel BGR (probability)
 
   mosaic: 1.0 # (float) image mosaic (probability)
-  # mixup: 0.0 # (float) image mixup (probability)
-  mixup: 0.05 # (float) image mixup (probability)
-  # copy_paste: 0.1 # (float) segment copy-paste (probability)
-  copy_paste: 0.15 # (float) segment copy-paste (probability)
+  mixup: 0.0 # (float) image mixup (probability)
+  copy_paste: 0.1 # (float) segment copy-paste (probability)
 
   copy_paste_mode: "flip" # (str) the method to do copy_paste augmentation (flip, mixup)
   auto_augment: randaugment # (str) auto augmentation policy for classification (randaugment, autoaugment, augmix)

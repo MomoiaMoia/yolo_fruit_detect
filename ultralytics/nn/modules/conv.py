@@ -45,10 +45,11 @@ class Conv(nn.Module):
         self.conv = nn.Conv2d(c1, c2, k, s, autopad(k, p, d), groups=g, dilation=d, bias=False)
         self.bn = nn.BatchNorm2d(c2)
         self.act = self.default_act if act is True else act if isinstance(act, nn.Module) else nn.Identity()
+        self.dropout = nn.Dropout(p=0.3)  # add dropout layer with default probability of 0.3
 
     def forward(self, x):
         """Apply convolution, batch normalization and activation to input tensor."""
-        return self.act(self.bn(self.conv(x)))
+        return self.dropout(self.act(self.bn(self.conv(x))))
 
     def forward_fuse(self, x):
         """Apply convolution and activation without batch normalization."""

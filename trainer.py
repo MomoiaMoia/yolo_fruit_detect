@@ -49,12 +49,9 @@ class Trainer():
 
         self.model = DetectionModel(cfg=model_cfg, ch=3, verbose=False).to(self.device)
 
-        for m in self.model.modules():
-            if isinstance(m, torch.nn.Dropout):
-                print(f"Setting dropout probability for {m}: {m.p}")
-                m.p = 0.3
-            if m.__class__.__name__ == "DropPath":
-                m.drop_prob = 0.1
+        # for m in self.model.modules():
+        #     if isinstance(m, torch.nn.Dropout):
+        #         print(f"Setting dropout probability for {m}: {m.p}")
 
         self.model.args = SimpleNamespace(**{**default_cfg, **model_cfg})
 
@@ -122,6 +119,7 @@ class Trainer():
                 outputs = self.model(images)
                 loss, loss_items = self.loss(outputs, batch)
                 loss.backward()
+                # torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=5.0)
                 self.optimizer.step()
 
                 loss_total += loss.item()
@@ -133,6 +131,7 @@ class Trainer():
             self.writer.add_scalar('Loss/Box', loss_box / self.total_train, epoch)
             self.writer.add_scalar('Loss/Cls', loss_cls / self.total_train, epoch)
             self.writer.add_scalar('Loss/DFL', loss_dfl / self.total_train, epoch)
+            self.writer.add_scalar('LR', self.scheduler.get_last_lr()[0], epoch)
 
             if (epoch + 1) % self.train_cfg['trainer']['metric_every'] == 0:
                 self.validate(epoch, split="train")
