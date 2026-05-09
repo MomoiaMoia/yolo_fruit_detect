@@ -49,9 +49,9 @@ class Trainer():
 
         self.model = DetectionModel(cfg=model_cfg, ch=3, verbose=False).to(self.device)
 
-        # for m in self.model.modules():
-        #     if isinstance(m, torch.nn.Dropout):
-        #         print(f"Setting dropout probability for {m}: {m.p}")
+        for m in self.model.modules():
+            if isinstance(m, torch.nn.Dropout):
+                m.p = self.train_cfg['trainer']['dropout']
 
         self.model.args = SimpleNamespace(**{**default_cfg, **model_cfg})
 
@@ -71,33 +71,43 @@ class Trainer():
 
         self.loss = self.model.init_criterion()
         
-        self.train_ds = build_yolo_dataset(SimpleNamespace(**{**default_cfg, **self.train_cfg["augmentation"]}), 
-                                           img_path=osp.join(self.train_cfg['dataset']['root_dir'], "train"), 
-                                           batch=self.train_cfg['dataset']['batch_size'], 
-                                           data=self.train_cfg['dataset'],
-                                           mode="train")
+        # yolo dataset
+        # self.train_ds = build_yolo_dataset(SimpleNamespace(**{**default_cfg, **self.train_cfg["augmentation"]}), 
+        #                                    img_path=osp.join(self.train_cfg['dataset']['root_dir'], "train"), 
+        #                                    batch=self.train_cfg['dataset']['batch_size'], 
+        #                                    data=self.train_cfg['dataset'],
+        #                                    mode="train")
         
-        self.val_ds = build_yolo_dataset(SimpleNamespace(**{**default_cfg, **self.train_cfg["augmentation"]}), 
-                                         img_path=osp.join(self.train_cfg['dataset']['root_dir'], "val"), 
-                                         batch=1, 
-                                         data=self.train_cfg['dataset'], 
-                                         mode="val")
+        # self.val_ds = build_yolo_dataset(SimpleNamespace(**{**default_cfg, **self.train_cfg["augmentation"]}), 
+        #                                  img_path=osp.join(self.train_cfg['dataset']['root_dir'], "val"), 
+        #                                  batch=1, 
+        #                                  data=self.train_cfg['dataset'], 
+        #                                  mode="val")
         
-        self.train_dl = DataLoader(self.train_ds, 
-                                   batch_size=self.train_cfg['dataset']['batch_size'], 
-                                   shuffle=True, 
-                                   num_workers=self.train_cfg['dataset']['num_workers'], 
-                                   persistent_workers=True,
-                                   pin_memory=True,
-                                   collate_fn=self.train_ds.collate_fn)
-        self.val_dl = DataLoader(self.val_ds, 
-                                 batch_size=1, 
-                                 shuffle=False,
-                                 num_workers=self.train_cfg['dataset']['num_workers'],
-                                 persistent_workers=True,
-                                 pin_memory=True,
-                                 collate_fn=self.val_ds.collate_fn)
+        # self.train_dl = DataLoader(self.train_ds, 
+        #                            batch_size=self.train_cfg['dataset']['batch_size'], 
+        #                            shuffle=True, 
+        #                            num_workers=self.train_cfg['dataset']['num_workers'], 
+        #                            persistent_workers=True,
+        #                            pin_memory=True,
+        #                            collate_fn=self.train_ds.collate_fn)
+        # self.val_dl = DataLoader(self.val_ds, 
+        #                          batch_size=1, 
+        #                          shuffle=False,
+        #                          num_workers=self.train_cfg['dataset']['num_workers'],
+        #                          persistent_workers=True,
+        #                          pin_memory=True,
+        #                          collate_fn=self.val_ds.collate_fn)
         
+        # legacy dataset
+        from datasets import StrawberryDataset
+        self.train_ds = StrawberryDataset(glob.glob(osp.join(self.train_cfg['dataset']['root_dir'], "train", "images", "*.jpg")), augment=False)
+        self.train_dl = DataLoader(self.train_ds, batch_size=self.train_cfg['dataset']['batch_size'],
+                                   shuffle=True,collate_fn=StrawberryDataset.collate_fn)
+        self.val_ds = StrawberryDataset(glob.glob(osp.join(self.train_cfg['dataset']['root_dir'], "val", "images", "*.jpg")), augment=False)
+        self.val_dl = DataLoader(self.val_ds, batch_size=self.train_cfg['dataset']['batch_size'],
+                                 shuffle=False, collate_fn=StrawberryDataset.collate_fn)
+ 
         self.total_train = len(self.train_dl)
         self.total_val = len(self.val_dl)
         
