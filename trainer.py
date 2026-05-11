@@ -42,6 +42,7 @@ class Trainer():
         default_cfg = yaml.load(open("ultralytics/cfg/default.yaml", 'r'), Loader=yaml.FullLoader)
         self.train_cfg = yaml.load(open(train_cfg_path, 'r'), Loader=yaml.FullLoader)
 
+        # init model ----------------------------------------------------------
         model_cfg = yaml.load(open(model_cfg_path, 'r'), Loader=yaml.FullLoader)
         model_cfg["scale"] = "n"
         
@@ -52,6 +53,7 @@ class Trainer():
 
         self.model = DetectionModel(cfg=model_cfg, ch=3, verbose=False).to(self.device)
         
+        # load weights and freeze layers --------------------------------------
         pretrained_weights = self.train_cfg['trainer'].get('pretrained')
         self.freeze = self.train_cfg['trainer'].get('freeze')
         if pretrained_weights:
@@ -60,6 +62,7 @@ class Trainer():
             print(f"Loaded pretrained weights from: {pretrained_weights}")
             self._freeze_layers()
 
+        # EMA, optimizer, scheduler, loss -------------------------------------
         self.use_ema = self.train_cfg['trainer']['use_ema']
         if self.use_ema:
             self.ema_model = EMA(self.model, decay=self.train_cfg['trainer']['ema_decay'], warmup=True).to(self.device)
@@ -259,8 +262,6 @@ class Trainer():
             if isinstance(self.freeze, int)
             else []
         )
-        if not freeze_list:
-            return
 
         freeze_layer_names = [f"model.{idx}." for idx in freeze_list] + [".dfl"]
         frozen = 0
@@ -270,11 +271,12 @@ class Trainer():
             if any(prefix in name for prefix in freeze_layer_names):
                 param.requires_grad = False
                 frozen += 1
-                print(f"Freezing layer: {name}")
+                print(f"Freezing layer: {name}".ljust(50), end="\r")
+                time.sleep(0.01)
             elif not param.requires_grad and param.dtype.is_floating_point:
                 param.requires_grad = True
-
-        print(f"Frozen parameters: {frozen}/{total}")
+        time.sleep(0.5)
+        print(f"Frozen parameters: {frozen}/{total}".ljust(50))
 
     def build_optimizer(self, group_weight_decay=True):
         norms = tuple(v for k, v in nn.__dict__.items() if 'Norm' in k)
