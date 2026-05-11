@@ -60,7 +60,8 @@ class Trainer():
             ckpt = torch.load(pretrained_weights, map_location='cpu')
             self.model.load(ckpt)
             print(f"Loaded pretrained weights from: {pretrained_weights}")
-            self._freeze_layers()
+            
+        self._freeze_layers()
 
         # EMA, optimizer, scheduler, loss -------------------------------------
         self.use_ema = self.train_cfg['trainer']['use_ema']
