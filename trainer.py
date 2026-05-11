@@ -11,6 +11,8 @@ import numpy as np
 from tqdm import tqdm
 from types import SimpleNamespace
 from os import path as osp
+
+from torch import nn
 from torch.utils.data import DataLoader
 from tensorboardX import SummaryWriter
 
@@ -55,10 +57,11 @@ class Trainer():
 
         self.model.args = SimpleNamespace(**{**default_cfg, **model_cfg})
 
-        self.optimizer = torch.optim.Adam(self.model.parameters(), 
-                                          lr=self.train_cfg['trainer']['lr'],
-                                          weight_decay=self.train_cfg['trainer']['wd'],
-                                          betas=self.train_cfg['trainer']['betas'])
+        self.optimizer = self.build_optimizer(group_weight_decay=True)
+        # self.optimizer = torch.optim.Adam(self.model.parameters(), 
+        #                                   lr=self.train_cfg['trainer']['lr'],
+        #                                   weight_decay=self.train_cfg['trainer']['wd'],
+        #                                   betas=self.train_cfg['trainer']['betas'])
 
         epochs = self.train_cfg['trainer']['epochs']
         lrf = self.train_cfg['trainer']['lrf']
@@ -129,7 +132,7 @@ class Trainer():
                 outputs = self.model(images)
                 loss, loss_items = self.loss(outputs, batch)
                 loss.backward()
-                # torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=5.0)
+                torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=10.0)
                 self.optimizer.step()
 
                 loss_total += loss.item()
@@ -229,5 +232,35 @@ class Trainer():
         os.makedirs(self.train_cfg['trainer']['ckpt_dir'], exist_ok=True)
         
         os.makedirs(self.train_cfg['trainer']['log_dir'], exist_ok=True)
+
+    def build_optimizer(self, group_weight_decay=True):
+        norms = tuple(v for k, v in nn.__dict__.items() if 'Norm' in k)
+        decay, no_decay = [], []
+        for module_name, module in self.model.named_modules():
+            for param_name, param in module.named_parameters(recurse=False):
+                if isinstance(module, norms):
+                    no_decay.append(param)
+                elif param_name.endswith('bias'):
+                    no_decay.append(param)
+                else:
+                    decay.append(param)
+
+        if group_weight_decay:
+            optim_groups = [
+                {'params': decay, 'weight_decay': self.train_cfg['trainer']['wd']},
+                {'params': no_decay, 'weight_decay': 0.0}
+            ]
+        else:
+            optim_groups =[{'params': self.model.parameters(), 'weight_decay': self.train_cfg['trainer']['wd']}]
+
+        total = sum(p.numel() for p in self.model.parameters())
+        nd = sum(p.numel() for p in no_decay)
+        print("Total parameters:", total)
+        print("Decay ratio:", (total - nd) / total)
+
+        optimizer = torch.optim.Adam(optim_groups,
+                                     lr=self.train_cfg['trainer']['lr'],
+                                     betas=self.train_cfg['trainer']['betas'])
+        return optimizer
 
     
