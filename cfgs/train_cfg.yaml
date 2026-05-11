@@ -10,6 +10,9 @@ trainer:
   log_dir: 'logs'
   ckpt_dir: 'ckpts'
 
+  use_ema: True
+  ema_decay: 0.9999
+
   metric_every: 20
   save_every: 50
 

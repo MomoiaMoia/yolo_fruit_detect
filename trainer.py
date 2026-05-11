@@ -21,6 +21,7 @@ from ultralytics.utils import ops
 from ultralytics.utils.torch_utils import one_cycle
 # from datasets import StrawberryDataset
 from ultralytics.data.build import build_yolo_dataset
+from ema import EMA
 from metrics import mean_ap, SpeedMeter, Timer
 
 def seed_everything(seed):
@@ -34,13 +35,14 @@ def seed_everything(seed):
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
     
-    
 class Trainer():
     def __init__(self, model_cfg_path, train_cfg_path):
         seed_everything(42)
         
         default_cfg = yaml.load(open("ultralytics/cfg/default.yaml", 'r'), Loader=yaml.FullLoader)
         self.train_cfg = yaml.load(open(train_cfg_path, 'r'), Loader=yaml.FullLoader)
+        self.use_ema = self.train_cfg['trainer']['use_ema']
+
         model_cfg = yaml.load(open(model_cfg_path, 'r'), Loader=yaml.FullLoader)
         model_cfg["scale"] = "n"
         
@@ -50,7 +52,10 @@ class Trainer():
             self.device = torch.device('cpu')
 
         self.model = DetectionModel(cfg=model_cfg, ch=3, verbose=False).to(self.device)
-
+        if self.use_ema:
+            self.ema_model = EMA(self.model, decay=self.train_cfg['trainer']['ema_decay'], warmup=True).to(self.device)
+            print("EMA enabled with decay:", self.train_cfg['trainer']['ema_decay'])
+            
         for m in self.model.modules():
             if isinstance(m, torch.nn.Dropout):
                 m.p = self.train_cfg['trainer']['dropout']
@@ -135,6 +140,9 @@ class Trainer():
                 torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=10.0)
                 self.optimizer.step()
 
+                if self.use_ema:
+                    self.ema_model.update(self.model)
+
                 loss_total += loss.item()
                 loss_box += loss_items[0]
                 loss_cls += loss_items[1]
@@ -147,8 +155,9 @@ class Trainer():
             self.writer.add_scalar('LR', self.scheduler.get_last_lr()[0], epoch)
 
             if (epoch + 1) % self.train_cfg['trainer']['metric_every'] == 0:
-                self.validate(epoch, split="train")
-                self.validate(epoch, split="val")
+                val_model = self.ema_model.ema if self.use_ema else self.model
+                self.validate(val_model, epoch, split="train")
+                self.validate(val_model, epoch, split="val")
             if (epoch + 1) % self.train_cfg['trainer']['save_every'] == 0:
                 self._save_all(epoch)
 
@@ -156,8 +165,8 @@ class Trainer():
 
         self._save_all(self.train_cfg['trainer']['epochs'])
 
-    def validate(self, epoch=0, split="val"):
-        self.model.eval()
+    def validate(self, val_model, epoch=0, split="val"):
+        val_model.eval()
         pred_list = []
         target_list = []
         
@@ -173,7 +182,7 @@ class Trainer():
             for batch in tqdm(dl, desc="Validating", dynamic_ncols=True):
                 images = batch["img"].float() / 255.0
                 images = images.to(self.device)
-                pred, _ = self.model(images)
+                pred, _ = val_model(images)
                 pred = ops.non_max_suppression(pred, conf_thres=0.25, iou_thres=0.45)
 
                 batch_size = images.shape[0]
@@ -215,7 +224,7 @@ class Trainer():
             f"F1: {metrics['f1']:.4f}, mAP50: {metrics['map50']:.4f}, mAP50-95: {metrics['map50_95']:.4f}"
         )
         
-        self.model.train()
+        val_model.train()
         return metrics
 
     def _save_all(self, epoch):
