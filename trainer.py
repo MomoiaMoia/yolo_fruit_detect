@@ -41,7 +41,6 @@ class Trainer():
         
         default_cfg = yaml.load(open("ultralytics/cfg/default.yaml", 'r'), Loader=yaml.FullLoader)
         self.train_cfg = yaml.load(open(train_cfg_path, 'r'), Loader=yaml.FullLoader)
-        self.use_ema = self.train_cfg['trainer']['use_ema']
 
         model_cfg = yaml.load(open(model_cfg_path, 'r'), Loader=yaml.FullLoader)
         model_cfg["scale"] = "n"
@@ -52,6 +51,16 @@ class Trainer():
             self.device = torch.device('cpu')
 
         self.model = DetectionModel(cfg=model_cfg, ch=3, verbose=False).to(self.device)
+        
+        pretrained_weights = self.train_cfg['trainer'].get('pretrained')
+        self.freeze = self.train_cfg['trainer'].get('freeze')
+        if pretrained_weights:
+            ckpt = torch.load(pretrained_weights, map_location='cpu')
+            self.model.load(ckpt)
+            print(f"Loaded pretrained weights from: {pretrained_weights}")
+            self._freeze_layers()
+
+        self.use_ema = self.train_cfg['trainer']['use_ema']
         if self.use_ema:
             self.ema_model = EMA(self.model, decay=self.train_cfg['trainer']['ema_decay'], warmup=True).to(self.device)
             print("EMA enabled with decay:", self.train_cfg['trainer']['ema_decay'])
@@ -62,7 +71,7 @@ class Trainer():
 
         self.model.args = SimpleNamespace(**{**default_cfg, **model_cfg})
 
-        self.optimizer = self.build_optimizer(group_weight_decay=True)
+        self.optimizer = self.build_optimizer(group_weight_decay=self.train_cfg['trainer']['group_wd'])
         # self.optimizer = torch.optim.Adam(self.model.parameters(), 
         #                                   lr=self.train_cfg['trainer']['lr'],
         #                                   weight_decay=self.train_cfg['trainer']['wd'],
@@ -80,41 +89,41 @@ class Trainer():
         self.loss = self.model.init_criterion()
         
         # yolo dataset
-        # self.train_ds = build_yolo_dataset(SimpleNamespace(**{**default_cfg, **self.train_cfg["augmentation"]}), 
-        #                                    img_path=osp.join(self.train_cfg['dataset']['root_dir'], "train"), 
-        #                                    batch=self.train_cfg['dataset']['batch_size'], 
-        #                                    data=self.train_cfg['dataset'],
-        #                                    mode="train")
+        self.train_ds = build_yolo_dataset(SimpleNamespace(**{**default_cfg, **self.train_cfg["augmentation"]}), 
+                                           img_path=osp.join(self.train_cfg['dataset']['root_dir'], "train"), 
+                                           batch=self.train_cfg['dataset']['batch_size'], 
+                                           data=self.train_cfg['dataset'],
+                                           mode="train")
         
-        # self.val_ds = build_yolo_dataset(SimpleNamespace(**{**default_cfg, **self.train_cfg["augmentation"]}), 
-        #                                  img_path=osp.join(self.train_cfg['dataset']['root_dir'], "val"), 
-        #                                  batch=1, 
-        #                                  data=self.train_cfg['dataset'], 
-        #                                  mode="val")
+        self.val_ds = build_yolo_dataset(SimpleNamespace(**{**default_cfg, **self.train_cfg["augmentation"]}), 
+                                         img_path=osp.join(self.train_cfg['dataset']['root_dir'], "val"), 
+                                         batch=1, 
+                                         data=self.train_cfg['dataset'], 
+                                         mode="val")
         
-        # self.train_dl = DataLoader(self.train_ds, 
-        #                            batch_size=self.train_cfg['dataset']['batch_size'], 
-        #                            shuffle=True, 
-        #                            num_workers=self.train_cfg['dataset']['num_workers'], 
-        #                            persistent_workers=True,
-        #                            pin_memory=True,
-        #                            collate_fn=self.train_ds.collate_fn)
-        # self.val_dl = DataLoader(self.val_ds, 
-        #                          batch_size=1, 
-        #                          shuffle=False,
-        #                          num_workers=self.train_cfg['dataset']['num_workers'],
-        #                          persistent_workers=True,
-        #                          pin_memory=True,
-        #                          collate_fn=self.val_ds.collate_fn)
+        self.train_dl = DataLoader(self.train_ds, 
+                                   batch_size=self.train_cfg['dataset']['batch_size'], 
+                                   shuffle=True, 
+                                   num_workers=self.train_cfg['dataset']['num_workers'], 
+                                   persistent_workers=True,
+                                   pin_memory=True,
+                                   collate_fn=self.train_ds.collate_fn)
+        self.val_dl = DataLoader(self.val_ds, 
+                                 batch_size=1, 
+                                 shuffle=False,
+                                 num_workers=self.train_cfg['dataset']['num_workers'],
+                                 persistent_workers=True,
+                                 pin_memory=True,
+                                 collate_fn=self.val_ds.collate_fn)
         
         # legacy dataset
-        from datasets import StrawberryDataset
-        self.train_ds = StrawberryDataset(glob.glob(osp.join(self.train_cfg['dataset']['root_dir'], "train", "images", "*.jpg")), augment=False)
-        self.train_dl = DataLoader(self.train_ds, batch_size=self.train_cfg['dataset']['batch_size'],
-                                   shuffle=True,collate_fn=StrawberryDataset.collate_fn)
-        self.val_ds = StrawberryDataset(glob.glob(osp.join(self.train_cfg['dataset']['root_dir'], "val", "images", "*.jpg")), augment=False)
-        self.val_dl = DataLoader(self.val_ds, batch_size=self.train_cfg['dataset']['batch_size'],
-                                 shuffle=False, collate_fn=StrawberryDataset.collate_fn)
+        # from datasets import StrawberryDataset
+        # self.train_ds = StrawberryDataset(glob.glob(osp.join(self.train_cfg['dataset']['root_dir'], "train", "images", "*.jpg")), augment=False)
+        # self.train_dl = DataLoader(self.train_ds, batch_size=self.train_cfg['dataset']['batch_size'],
+        #                            shuffle=True,collate_fn=StrawberryDataset.collate_fn)
+        # self.val_ds = StrawberryDataset(glob.glob(osp.join(self.train_cfg['dataset']['root_dir'], "val", "images", "*.jpg")), augment=False)
+        # self.val_dl = DataLoader(self.val_ds, batch_size=self.train_cfg['dataset']['batch_size'],
+        #                          shuffle=False, collate_fn=StrawberryDataset.collate_fn)
  
         self.total_train = len(self.train_dl)
         self.total_val = len(self.val_dl)
@@ -242,6 +251,31 @@ class Trainer():
         
         os.makedirs(self.train_cfg['trainer']['log_dir'], exist_ok=True)
 
+    def _freeze_layers(self):
+        freeze_list = (
+            self.freeze
+            if isinstance(self.freeze, list)
+            else range(self.freeze)
+            if isinstance(self.freeze, int)
+            else []
+        )
+        if not freeze_list:
+            return
+
+        freeze_layer_names = [f"model.{idx}." for idx in freeze_list] + [".dfl"]
+        frozen = 0
+        total = 0
+        for name, param in self.model.named_parameters():
+            total += 1
+            if any(prefix in name for prefix in freeze_layer_names):
+                param.requires_grad = False
+                frozen += 1
+                print(f"Freezing layer: {name}")
+            elif not param.requires_grad and param.dtype.is_floating_point:
+                param.requires_grad = True
+
+        print(f"Frozen parameters: {frozen}/{total}")
+
     def build_optimizer(self, group_weight_decay=True):
         norms = tuple(v for k, v in nn.__dict__.items() if 'Norm' in k)
         decay, no_decay = [], []
@@ -259,13 +293,13 @@ class Trainer():
                 {'params': decay, 'weight_decay': self.train_cfg['trainer']['wd']},
                 {'params': no_decay, 'weight_decay': 0.0}
             ]
+
+            total = sum(p.numel() for p in self.model.parameters())
+            nd = sum(p.numel() for p in no_decay)
+            print("Total parameters:", total)
+            print("Decay ratio:", (total - nd) / total)
         else:
             optim_groups =[{'params': self.model.parameters(), 'weight_decay': self.train_cfg['trainer']['wd']}]
-
-        total = sum(p.numel() for p in self.model.parameters())
-        nd = sum(p.numel() for p in no_decay)
-        print("Total parameters:", total)
-        print("Decay ratio:", (total - nd) / total)
 
         optimizer = torch.optim.Adam(optim_groups,
                                      lr=self.train_cfg['trainer']['lr'],

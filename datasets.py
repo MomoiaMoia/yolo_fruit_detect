@@ -62,6 +62,7 @@ class StrawberryDataset(torch.utils.data.Dataset):
             image = augmented["image"]
             labels = [[c, *bbox] for c, bbox in zip(augmented["class_labels"], augmented["bboxes"])]
         
+        image = np.asarray(Image.open(image_path).convert('RGB')).copy()
         image = torch.from_numpy(image).permute(2, 0, 1).float().div_(255.0)
         return image, labels
 
