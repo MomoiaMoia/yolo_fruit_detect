@@ -997,16 +997,30 @@ class Exporter:
         # Export to TF
         np_data = None
         if self.args.int8:
-            tmp_file = f / "tmp_tflite_int8_calibration_images.npy"  # int8 calibration images file
-            if self.args.data:
-                f.mkdir()
-                images = [batch["img"] for batch in self.get_int8_calibration_dataloader(prefix)]
-                images = torch.nn.functional.interpolate(torch.cat(images, 0).float(), size=self.imgsz).permute(
-                    0, 2, 3, 1
-                )
-                np.save(str(tmp_file), images.numpy().astype(np.float32))  # BHWC
-                np_data = [["images", tmp_file, [[[[0, 0, 0]]]], [[[[255, 255, 255]]]]]]
+            # tmp_file = f / "tmp_tflite_int8_calibration_images.npy"  # int8 calibration images file
+            # if self.args.data:
+            #     f.mkdir()
+            #     images = [batch["img"] for batch in self.get_int8_calibration_dataloader(prefix)]
+            #     images = torch.nn.functional.interpolate(torch.cat(images, 0).float(), size=self.imgsz).permute(
+            #         0, 2, 3, 1
+            #     )
+            #     np.save(str(tmp_file), images.numpy().astype(np.float32))  # BHWC
+            #     np_data = [["images", tmp_file, [[[[0, 0, 0]]]], [[[[255, 255, 255]]]]]]
 
+            from glob import glob
+            from PIL import Image
+            
+            tmp_file = f / "tmp_tflite_int8_calibration_images.npy"
+            f.mkdir()
+            print(f"Using custom int8 calibration dataset for onnx2tf from {tmp_file}")
+            data = glob("strawberry_cls/train/images/*.jpg")[:20]
+            images = []
+            for img in data:
+                images.append(np.asarray(Image.open(img).convert('RGB')))
+            images = np.stack(images, 0)
+            np.save(str(tmp_file), images.astype(np.float32))
+            np_data = [["images", tmp_file, [[[[0, 0, 0]]]], [[[[255, 255, 255]]]]]]
+            
         LOGGER.info(f"{prefix} starting TFLite export with onnx2tf {onnx2tf.__version__}...")
         keras_model = onnx2tf.convert(
             input_onnx_file_path=f_onnx,
@@ -1030,8 +1044,8 @@ class Exporter:
                 file.unlink()  # delete extra fp16 activation TFLite files
 
         # Add TFLite metadata
-        for file in f.rglob("*.tflite"):
-            f.unlink() if "quant_with_int16_act.tflite" in str(f) else self._add_tflite_metadata(file)
+        # for file in f.rglob("*.tflite"):
+        #     f.unlink() if "quant_with_int16_act.tflite" in str(f) else self._add_tflite_metadata(file)
 
         return str(f), keras_model  # or keras_model = tf.saved_model.load(f, tags=None, options=None)
 

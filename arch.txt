@@ -1,0 +1,943 @@
+DetectionModel(
+  (model): Sequential(
+    (0): Conv(
+      (conv): Conv2d(3, 16, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False)
+      (bn): BatchNorm2d(16, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+      (act): SiLU(inplace=True)
+      (dropout): Dropout(p=0.0, inplace=False)
+    )
+    (1): Conv(
+      (conv): Conv2d(16, 32, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), groups=2, bias=False)
+      (bn): BatchNorm2d(32, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+      (act): SiLU(inplace=True)
+      (dropout): Dropout(p=0.0, inplace=False)
+    )
+    (2): C3k2(
+      (cv1): Conv(
+        (conv): Conv2d(32, 32, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn): BatchNorm2d(32, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+        (act): SiLU(inplace=True)
+        (dropout): Dropout(p=0.0, inplace=False)
+      )
+      (cv2): Conv(
+        (conv): Conv2d(48, 64, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn): BatchNorm2d(64, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+        (act): SiLU(inplace=True)
+        (dropout): Dropout(p=0.0, inplace=False)
+      )
+      (m): ModuleList(
+        (0): Bottleneck(
+          (cv1): Conv(
+            (conv): Conv2d(16, 8, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+            (bn): BatchNorm2d(8, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+            (act): SiLU(inplace=True)
+            (dropout): Dropout(p=0.0, inplace=False)
+          )
+          (cv2): Conv(
+            (conv): Conv2d(8, 16, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+            (bn): BatchNorm2d(16, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+            (act): SiLU(inplace=True)
+            (dropout): Dropout(p=0.0, inplace=False)
+          )
+        )
+      )
+    )
+    (3): Conv(
+      (conv): Conv2d(64, 64, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), groups=4, bias=False)
+      (bn): BatchNorm2d(64, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+      (act): SiLU(inplace=True)
+      (dropout): Dropout(p=0.0, inplace=False)
+    )
+    (4): C3k2(
+      (cv1): Conv(
+        (conv): Conv2d(64, 64, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn): BatchNorm2d(64, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+        (act): SiLU(inplace=True)
+        (dropout): Dropout(p=0.0, inplace=False)
+      )
+      (cv2): Conv(
+        (conv): Conv2d(96, 128, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn): BatchNorm2d(128, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+        (act): SiLU(inplace=True)
+        (dropout): Dropout(p=0.0, inplace=False)
+      )
+      (m): ModuleList(
+        (0): Bottleneck(
+          (cv1): Conv(
+            (conv): Conv2d(32, 16, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+            (bn): BatchNorm2d(16, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+            (act): SiLU(inplace=True)
+            (dropout): Dropout(p=0.0, inplace=False)
+          )
+          (cv2): Conv(
+            (conv): Conv2d(16, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+            (bn): BatchNorm2d(32, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+            (act): SiLU(inplace=True)
+            (dropout): Dropout(p=0.0, inplace=False)
+          )
+        )
+      )
+    )
+    (5): Conv(
+      (conv): Conv2d(128, 128, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False)
+      (bn): BatchNorm2d(128, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+      (act): SiLU(inplace=True)
+      (dropout): Dropout(p=0.0, inplace=False)
+    )
+    (6): A2C2f(
+      (cv1): Conv(
+        (conv): Conv2d(128, 64, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn): BatchNorm2d(64, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+        (act): SiLU(inplace=True)
+        (dropout): Dropout(p=0.0, inplace=False)
+      )
+      (cv2): Conv(
+        (conv): Conv2d(192, 128, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn): BatchNorm2d(128, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+        (act): SiLU(inplace=True)
+        (dropout): Dropout(p=0.0, inplace=False)
+      )
+      (m): ModuleList(
+        (0-1): 2 x Sequential(
+          (0): ABlock(
+            (attn): AAttn(
+              (qk): Conv(
+                (conv): Conv2d(64, 128, kernel_size=(1, 1), stride=(1, 1), bias=False)
+                (bn): BatchNorm2d(128, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+                (act): Identity()
+                (dropout): Dropout(p=0.0, inplace=False)
+              )
+              (v): Conv(
+                (conv): Conv2d(64, 64, kernel_size=(1, 1), stride=(1, 1), bias=False)
+                (bn): BatchNorm2d(64, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+                (act): Identity()
+                (dropout): Dropout(p=0.0, inplace=False)
+              )
+              (proj): Conv(
+                (conv): Conv2d(64, 64, kernel_size=(1, 1), stride=(1, 1), bias=False)
+                (bn): BatchNorm2d(64, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+                (act): Identity()
+                (dropout): Dropout(p=0.0, inplace=False)
+              )
+              (pe): Conv(
+                (conv): Conv2d(64, 64, kernel_size=(5, 5), stride=(1, 1), padding=(2, 2), groups=64, bias=False)
+                (bn): BatchNorm2d(64, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+                (act): Identity()
+                (dropout): Dropout(p=0.0, inplace=False)
+              )
+            )
+            (mlp): Sequential(
+              (0): Conv(
+                (conv): Conv2d(64, 128, kernel_size=(1, 1), stride=(1, 1), bias=False)
+                (bn): BatchNorm2d(128, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+                (act): SiLU(inplace=True)
+                (dropout): Dropout(p=0.0, inplace=False)
+              )
+              (1): Conv(
+                (conv): Conv2d(128, 64, kernel_size=(1, 1), stride=(1, 1), bias=False)
+                (bn): BatchNorm2d(64, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+                (act): Identity()
+                (dropout): Dropout(p=0.0, inplace=False)
+              )
+            )
+          )
+          (1): ABlock(
+            (attn): AAttn(
+              (qk): Conv(
+                (conv): Conv2d(64, 128, kernel_size=(1, 1), stride=(1, 1), bias=False)
+                (bn): BatchNorm2d(128, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+                (act): Identity()
+                (dropout): Dropout(p=0.0, inplace=False)
+              )
+              (v): Conv(
+                (conv): Conv2d(64, 64, kernel_size=(1, 1), stride=(1, 1), bias=False)
+                (bn): BatchNorm2d(64, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+                (act): Identity()
+                (dropout): Dropout(p=0.0, inplace=False)
+              )
+              (proj): Conv(
+                (conv): Conv2d(64, 64, kernel_size=(1, 1), stride=(1, 1), bias=False)
+                (bn): BatchNorm2d(64, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+                (act): Identity()
+                (dropout): Dropout(p=0.0, inplace=False)
+              )
+              (pe): Conv(
+                (conv): Conv2d(64, 64, kernel_size=(5, 5), stride=(1, 1), padding=(2, 2), groups=64, bias=False)
+                (bn): BatchNorm2d(64, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+                (act): Identity()
+                (dropout): Dropout(p=0.0, inplace=False)
+              )
+            )
+            (mlp): Sequential(
+              (0): Conv(
+                (conv): Conv2d(64, 128, kernel_size=(1, 1), stride=(1, 1), bias=False)
+                (bn): BatchNorm2d(128, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+                (act): SiLU(inplace=True)
+                (dropout): Dropout(p=0.0, inplace=False)
+              )
+              (1): Conv(
+                (conv): Conv2d(128, 64, kernel_size=(1, 1), stride=(1, 1), bias=False)
+                (bn): BatchNorm2d(64, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+                (act): Identity()
+                (dropout): Dropout(p=0.0, inplace=False)
+              )
+            )
+          )
+        )
+      )
+    )
+    (7): Conv(
+      (conv): Conv2d(128, 256, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False)
+      (bn): BatchNorm2d(256, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+      (act): SiLU(inplace=True)
+      (dropout): Dropout(p=0.0, inplace=False)
+    )
+    (8): A2C2f(
+      (cv1): Conv(
+        (conv): Conv2d(256, 128, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn): BatchNorm2d(128, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+        (act): SiLU(inplace=True)
+        (dropout): Dropout(p=0.0, inplace=False)
+      )
+      (cv2): Conv(
+        (conv): Conv2d(384, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn): BatchNorm2d(256, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+        (act): SiLU(inplace=True)
+        (dropout): Dropout(p=0.0, inplace=False)
+      )
+      (m): ModuleList(
+        (0-1): 2 x Sequential(
+          (0): ABlock(
+            (attn): AAttn(
+              (qk): Conv(
+                (conv): Conv2d(128, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+                (bn): BatchNorm2d(256, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+                (act): Identity()
+                (dropout): Dropout(p=0.0, inplace=False)
+              )
+              (v): Conv(
+                (conv): Conv2d(128, 128, kernel_size=(1, 1), stride=(1, 1), bias=False)
+                (bn): BatchNorm2d(128, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+                (act): Identity()
+                (dropout): Dropout(p=0.0, inplace=False)
+              )
+              (proj): Conv(
+                (conv): Conv2d(128, 128, kernel_size=(1, 1), stride=(1, 1), bias=False)
+                (bn): BatchNorm2d(128, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+                (act): Identity()
+                (dropout): Dropout(p=0.0, inplace=False)
+              )
+              (pe): Conv(
+                (conv): Conv2d(128, 128, kernel_size=(5, 5), stride=(1, 1), padding=(2, 2), groups=128, bias=False)
+                (bn): BatchNorm2d(128, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+                (act): Identity()
+                (dropout): Dropout(p=0.0, inplace=False)
+              )
+            )
+            (mlp): Sequential(
+              (0): Conv(
+                (conv): Conv2d(128, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+                (bn): BatchNorm2d(256, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+                (act): SiLU(inplace=True)
+                (dropout): Dropout(p=0.0, inplace=False)
+              )
+              (1): Conv(
+                (conv): Conv2d(256, 128, kernel_size=(1, 1), stride=(1, 1), bias=False)
+                (bn): BatchNorm2d(128, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+                (act): Identity()
+                (dropout): Dropout(p=0.0, inplace=False)
+              )
+            )
+          )
+          (1): ABlock(
+            (attn): AAttn(
+              (qk): Conv(
+                (conv): Conv2d(128, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+                (bn): BatchNorm2d(256, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+                (act): Identity()
+                (dropout): Dropout(p=0.0, inplace=False)
+              )
+              (v): Conv(
+                (conv): Conv2d(128, 128, kernel_size=(1, 1), stride=(1, 1), bias=False)
+                (bn): BatchNorm2d(128, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+                (act): Identity()
+                (dropout): Dropout(p=0.0, inplace=False)
+              )
+              (proj): Conv(
+                (conv): Conv2d(128, 128, kernel_size=(1, 1), stride=(1, 1), bias=False)
+                (bn): BatchNorm2d(128, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+                (act): Identity()
+                (dropout): Dropout(p=0.0, inplace=False)
+              )
+              (pe): Conv(
+                (conv): Conv2d(128, 128, kernel_size=(5, 5), stride=(1, 1), padding=(2, 2), groups=128, bias=False)
+                (bn): BatchNorm2d(128, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+                (act): Identity()
+                (dropout): Dropout(p=0.0, inplace=False)
+              )
+            )
+            (mlp): Sequential(
+              (0): Conv(
+                (conv): Conv2d(128, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+                (bn): BatchNorm2d(256, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+                (act): SiLU(inplace=True)
+                (dropout): Dropout(p=0.0, inplace=False)
+              )
+              (1): Conv(
+                (conv): Conv2d(256, 128, kernel_size=(1, 1), stride=(1, 1), bias=False)
+                (bn): BatchNorm2d(128, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+                (act): Identity()
+                (dropout): Dropout(p=0.0, inplace=False)
+              )
+            )
+          )
+        )
+      )
+    )
+    (9): Upsample(scale_factor=2.0, mode='nearest')
+    (10): Concat()
+    (11): A2C2f(
+      (cv1): Conv(
+        (conv): Conv2d(384, 64, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn): BatchNorm2d(64, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+        (act): SiLU(inplace=True)
+        (dropout): Dropout(p=0.0, inplace=False)
+      )
+      (cv2): Conv(
+        (conv): Conv2d(128, 128, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn): BatchNorm2d(128, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+        (act): SiLU(inplace=True)
+        (dropout): Dropout(p=0.0, inplace=False)
+      )
+      (m): ModuleList(
+        (0): C3k(
+          (cv1): Conv(
+            (conv): Conv2d(64, 32, kernel_size=(1, 1), stride=(1, 1), bias=False)
+            (bn): BatchNorm2d(32, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+            (act): SiLU(inplace=True)
+            (dropout): Dropout(p=0.0, inplace=False)
+          )
+          (cv2): Conv(
+            (conv): Conv2d(64, 32, kernel_size=(1, 1), stride=(1, 1), bias=False)
+            (bn): BatchNorm2d(32, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+            (act): SiLU(inplace=True)
+            (dropout): Dropout(p=0.0, inplace=False)
+          )
+          (cv3): Conv(
+            (conv): Conv2d(64, 64, kernel_size=(1, 1), stride=(1, 1), bias=False)
+            (bn): BatchNorm2d(64, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+            (act): SiLU(inplace=True)
+            (dropout): Dropout(p=0.0, inplace=False)
+          )
+          (m): Sequential(
+            (0): Bottleneck(
+              (cv1): Conv(
+                (conv): Conv2d(32, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+                (bn): BatchNorm2d(32, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+                (act): SiLU(inplace=True)
+                (dropout): Dropout(p=0.0, inplace=False)
+              )
+              (cv2): Conv(
+                (conv): Conv2d(32, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+                (bn): BatchNorm2d(32, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+                (act): SiLU(inplace=True)
+                (dropout): Dropout(p=0.0, inplace=False)
+              )
+            )
+            (1): Bottleneck(
+              (cv1): Conv(
+                (conv): Conv2d(32, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+                (bn): BatchNorm2d(32, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+                (act): SiLU(inplace=True)
+                (dropout): Dropout(p=0.0, inplace=False)
+              )
+              (cv2): Conv(
+                (conv): Conv2d(32, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+                (bn): BatchNorm2d(32, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+                (act): SiLU(inplace=True)
+                (dropout): Dropout(p=0.0, inplace=False)
+              )
+            )
+          )
+        )
+      )
+    )
+    (12): Upsample(scale_factor=2.0, mode='nearest')
+    (13): Concat()
+    (14): A2C2f(
+      (cv1): Conv(
+        (conv): Conv2d(256, 32, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn): BatchNorm2d(32, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+        (act): SiLU(inplace=True)
+        (dropout): Dropout(p=0.0, inplace=False)
+      )
+      (cv2): Conv(
+        (conv): Conv2d(64, 64, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn): BatchNorm2d(64, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+        (act): SiLU(inplace=True)
+        (dropout): Dropout(p=0.0, inplace=False)
+      )
+      (m): ModuleList(
+        (0): C3k(
+          (cv1): Conv(
+            (conv): Conv2d(32, 16, kernel_size=(1, 1), stride=(1, 1), bias=False)
+            (bn): BatchNorm2d(16, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+            (act): SiLU(inplace=True)
+            (dropout): Dropout(p=0.0, inplace=False)
+          )
+          (cv2): Conv(
+            (conv): Conv2d(32, 16, kernel_size=(1, 1), stride=(1, 1), bias=False)
+            (bn): BatchNorm2d(16, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+            (act): SiLU(inplace=True)
+            (dropout): Dropout(p=0.0, inplace=False)
+          )
+          (cv3): Conv(
+            (conv): Conv2d(32, 32, kernel_size=(1, 1), stride=(1, 1), bias=False)
+            (bn): BatchNorm2d(32, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+            (act): SiLU(inplace=True)
+            (dropout): Dropout(p=0.0, inplace=False)
+          )
+          (m): Sequential(
+            (0): Bottleneck(
+              (cv1): Conv(
+                (conv): Conv2d(16, 16, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+                (bn): BatchNorm2d(16, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+                (act): SiLU(inplace=True)
+                (dropout): Dropout(p=0.0, inplace=False)
+              )
+              (cv2): Conv(
+                (conv): Conv2d(16, 16, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+                (bn): BatchNorm2d(16, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+                (act): SiLU(inplace=True)
+                (dropout): Dropout(p=0.0, inplace=False)
+              )
+            )
+            (1): Bottleneck(
+              (cv1): Conv(
+                (conv): Conv2d(16, 16, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+                (bn): BatchNorm2d(16, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+                (act): SiLU(inplace=True)
+                (dropout): Dropout(p=0.0, inplace=False)
+              )
+              (cv2): Conv(
+                (conv): Conv2d(16, 16, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+                (bn): BatchNorm2d(16, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+                (act): SiLU(inplace=True)
+                (dropout): Dropout(p=0.0, inplace=False)
+              )
+            )
+          )
+        )
+      )
+    )
+    (15): Conv(
+      (conv): Conv2d(64, 64, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False)
+      (bn): BatchNorm2d(64, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+      (act): SiLU(inplace=True)
+      (dropout): Dropout(p=0.0, inplace=False)
+    )
+    (16): Concat()
+    (17): A2C2f(
+      (cv1): Conv(
+        (conv): Conv2d(192, 64, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn): BatchNorm2d(64, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+        (act): SiLU(inplace=True)
+        (dropout): Dropout(p=0.0, inplace=False)
+      )
+      (cv2): Conv(
+        (conv): Conv2d(128, 128, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn): BatchNorm2d(128, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+        (act): SiLU(inplace=True)
+        (dropout): Dropout(p=0.0, inplace=False)
+      )
+      (m): ModuleList(
+        (0): C3k(
+          (cv1): Conv(
+            (conv): Conv2d(64, 32, kernel_size=(1, 1), stride=(1, 1), bias=False)
+            (bn): BatchNorm2d(32, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+            (act): SiLU(inplace=True)
+            (dropout): Dropout(p=0.0, inplace=False)
+          )
+          (cv2): Conv(
+            (conv): Conv2d(64, 32, kernel_size=(1, 1), stride=(1, 1), bias=False)
+            (bn): BatchNorm2d(32, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+            (act): SiLU(inplace=True)
+            (dropout): Dropout(p=0.0, inplace=False)
+          )
+          (cv3): Conv(
+            (conv): Conv2d(64, 64, kernel_size=(1, 1), stride=(1, 1), bias=False)
+            (bn): BatchNorm2d(64, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+            (act): SiLU(inplace=True)
+            (dropout): Dropout(p=0.0, inplace=False)
+          )
+          (m): Sequential(
+            (0): Bottleneck(
+              (cv1): Conv(
+                (conv): Conv2d(32, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+                (bn): BatchNorm2d(32, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+                (act): SiLU(inplace=True)
+                (dropout): Dropout(p=0.0, inplace=False)
+              )
+              (cv2): Conv(
+                (conv): Conv2d(32, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+                (bn): BatchNorm2d(32, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+                (act): SiLU(inplace=True)
+                (dropout): Dropout(p=0.0, inplace=False)
+              )
+            )
+            (1): Bottleneck(
+              (cv1): Conv(
+                (conv): Conv2d(32, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+                (bn): BatchNorm2d(32, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+                (act): SiLU(inplace=True)
+                (dropout): Dropout(p=0.0, inplace=False)
+              )
+              (cv2): Conv(
+                (conv): Conv2d(32, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+                (bn): BatchNorm2d(32, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+                (act): SiLU(inplace=True)
+                (dropout): Dropout(p=0.0, inplace=False)
+              )
+            )
+          )
+        )
+      )
+    )
+    (18): Conv(
+      (conv): Conv2d(128, 128, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False)
+      (bn): BatchNorm2d(128, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+      (act): SiLU(inplace=True)
+      (dropout): Dropout(p=0.0, inplace=False)
+    )
+    (19): Concat()
+    (20): C3k2(
+      (cv1): Conv(
+        (conv): Conv2d(384, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn): BatchNorm2d(256, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+        (act): SiLU(inplace=True)
+        (dropout): Dropout(p=0.0, inplace=False)
+      )
+      (cv2): Conv(
+        (conv): Conv2d(384, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn): BatchNorm2d(256, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+        (act): SiLU(inplace=True)
+        (dropout): Dropout(p=0.0, inplace=False)
+      )
+      (m): ModuleList(
+        (0): C3k(
+          (cv1): Conv(
+            (conv): Conv2d(128, 64, kernel_size=(1, 1), stride=(1, 1), bias=False)
+            (bn): BatchNorm2d(64, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+            (act): SiLU(inplace=True)
+            (dropout): Dropout(p=0.0, inplace=False)
+          )
+          (cv2): Conv(
+            (conv): Conv2d(128, 64, kernel_size=(1, 1), stride=(1, 1), bias=False)
+            (bn): BatchNorm2d(64, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+            (act): SiLU(inplace=True)
+            (dropout): Dropout(p=0.0, inplace=False)
+          )
+          (cv3): Conv(
+            (conv): Conv2d(128, 128, kernel_size=(1, 1), stride=(1, 1), bias=False)
+            (bn): BatchNorm2d(128, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+            (act): SiLU(inplace=True)
+            (dropout): Dropout(p=0.0, inplace=False)
+          )
+          (m): Sequential(
+            (0): Bottleneck(
+              (cv1): Conv(
+                (conv): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+                (bn): BatchNorm2d(64, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+                (act): SiLU(inplace=True)
+                (dropout): Dropout(p=0.0, inplace=False)
+              )
+              (cv2): Conv(
+                (conv): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+                (bn): BatchNorm2d(64, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+                (act): SiLU(inplace=True)
+                (dropout): Dropout(p=0.0, inplace=False)
+              )
+            )
+            (1): Bottleneck(
+              (cv1): Conv(
+                (conv): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+                (bn): BatchNorm2d(64, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+                (act): SiLU(inplace=True)
+                (dropout): Dropout(p=0.0, inplace=False)
+              )
+              (cv2): Conv(
+                (conv): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+                (bn): BatchNorm2d(64, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+                (act): SiLU(inplace=True)
+                (dropout): Dropout(p=0.0, inplace=False)
+              )
+            )
+          )
+        )
+      )
+    )
+    (21): Detect(
+      (cv2): ModuleList(
+        (0): Sequential(
+          (0): Conv(
+            (conv): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+            (bn): BatchNorm2d(64, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+            (act): SiLU(inplace=True)
+            (dropout): Dropout(p=0.0, inplace=False)
+          )
+          (1): Conv(
+            (conv): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+            (bn): BatchNorm2d(64, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+            (act): SiLU(inplace=True)
+            (dropout): Dropout(p=0.0, inplace=False)
+          )
+          (2): Conv2d(64, 64, kernel_size=(1, 1), stride=(1, 1))
+        )
+        (1): Sequential(
+          (0): Conv(
+            (conv): Conv2d(128, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+            (bn): BatchNorm2d(64, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+            (act): SiLU(inplace=True)
+            (dropout): Dropout(p=0.0, inplace=False)
+          )
+          (1): Conv(
+            (conv): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+            (bn): BatchNorm2d(64, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+            (act): SiLU(inplace=True)
+            (dropout): Dropout(p=0.0, inplace=False)
+          )
+          (2): Conv2d(64, 64, kernel_size=(1, 1), stride=(1, 1))
+        )
+        (2): Sequential(
+          (0): Conv(
+            (conv): Conv2d(256, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+            (bn): BatchNorm2d(64, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+            (act): SiLU(inplace=True)
+            (dropout): Dropout(p=0.0, inplace=False)
+          )
+          (1): Conv(
+            (conv): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+            (bn): BatchNorm2d(64, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+            (act): SiLU(inplace=True)
+            (dropout): Dropout(p=0.0, inplace=False)
+          )
+          (2): Conv2d(64, 64, kernel_size=(1, 1), stride=(1, 1))
+        )
+      )
+      (cv3): ModuleList(
+        (0): Sequential(
+          (0): Sequential(
+            (0): DWConv(
+              (conv): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=64, bias=False)
+              (bn): BatchNorm2d(64, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+              (act): SiLU(inplace=True)
+              (dropout): Dropout(p=0.0, inplace=False)
+            )
+            (1): Conv(
+              (conv): Conv2d(64, 64, kernel_size=(1, 1), stride=(1, 1), bias=False)
+              (bn): BatchNorm2d(64, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+              (act): SiLU(inplace=True)
+              (dropout): Dropout(p=0.0, inplace=False)
+            )
+          )
+          (1): Sequential(
+            (0): DWConv(
+              (conv): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=64, bias=False)
+              (bn): BatchNorm2d(64, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+              (act): SiLU(inplace=True)
+              (dropout): Dropout(p=0.0, inplace=False)
+            )
+            (1): Conv(
+              (conv): Conv2d(64, 64, kernel_size=(1, 1), stride=(1, 1), bias=False)
+              (bn): BatchNorm2d(64, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+              (act): SiLU(inplace=True)
+              (dropout): Dropout(p=0.0, inplace=False)
+            )
+          )
+          (2): Conv2d(64, 3, kernel_size=(1, 1), stride=(1, 1))
+        )
+        (1): Sequential(
+          (0): Sequential(
+            (0): DWConv(
+              (conv): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=128, bias=False)
+              (bn): BatchNorm2d(128, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+              (act): SiLU(inplace=True)
+              (dropout): Dropout(p=0.0, inplace=False)
+            )
+            (1): Conv(
+              (conv): Conv2d(128, 64, kernel_size=(1, 1), stride=(1, 1), bias=False)
+              (bn): BatchNorm2d(64, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+              (act): SiLU(inplace=True)
+              (dropout): Dropout(p=0.0, inplace=False)
+            )
+          )
+          (1): Sequential(
+            (0): DWConv(
+              (conv): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=64, bias=False)
+              (bn): BatchNorm2d(64, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+              (act): SiLU(inplace=True)
+              (dropout): Dropout(p=0.0, inplace=False)
+            )
+            (1): Conv(
+              (conv): Conv2d(64, 64, kernel_size=(1, 1), stride=(1, 1), bias=False)
+              (bn): BatchNorm2d(64, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+              (act): SiLU(inplace=True)
+              (dropout): Dropout(p=0.0, inplace=False)
+            )
+          )
+          (2): Conv2d(64, 3, kernel_size=(1, 1), stride=(1, 1))
+        )
+        (2): Sequential(
+          (0): Sequential(
+            (0): DWConv(
+              (conv): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=256, bias=False)
+              (bn): BatchNorm2d(256, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+              (act): SiLU(inplace=True)
+              (dropout): Dropout(p=0.0, inplace=False)
+            )
+            (1): Conv(
+              (conv): Conv2d(256, 64, kernel_size=(1, 1), stride=(1, 1), bias=False)
+              (bn): BatchNorm2d(64, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+              (act): SiLU(inplace=True)
+              (dropout): Dropout(p=0.0, inplace=False)
+            )
+          )
+          (1): Sequential(
+            (0): DWConv(
+              (conv): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), groups=64, bias=False)
+              (bn): BatchNorm2d(64, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+              (act): SiLU(inplace=True)
+              (dropout): Dropout(p=0.0, inplace=False)
+            )
+            (1): Conv(
+              (conv): Conv2d(64, 64, kernel_size=(1, 1), stride=(1, 1), bias=False)
+              (bn): BatchNorm2d(64, eps=0.001, momentum=0.03, affine=True, track_running_stats=True)
+              (act): SiLU(inplace=True)
+              (dropout): Dropout(p=0.0, inplace=False)
+            )
+          )
+          (2): Conv2d(64, 3, kernel_size=(1, 1), stride=(1, 1))
+        )
+      )
+      (dfl): DFL(
+        (conv): Conv2d(16, 1, kernel_size=(1, 1), stride=(1, 1), bias=False)
+      )
+    )
+  )
+)
+
+## Python Code Execution Result
+
+**Python Interpreter:** `file:///root/autodl-tmp/envs/yolo/bin/python`
+
+**Exit Code:** 0
+
+**Code Lines:** 89
+
+**Working Directory:** `file:///root/autodl-tmp/hanyu_other/yolo_fruit_detect`
+
+### Executed Code:
+
+```python
+import onnx
+from onnx import numpy_helper
+import numpy as np
+import os
+p = 'onnx/model_epoch_600.onnx'
+if not os.path.exists(p):
+    p = 'onnx/dummy_model.onnx'
+print('model_path:', p)
+model = onnx.load(p)
+print('Running shape inference...')
+try:
+    inferred = onnx.shape_inference.infer_shapes(model)
+except Exception as e:
+    print('shape_inference failed:', e)
+    inferred = model
+
+# collect value_info shapes
+def get_shape(dims):
+    s = []
+    for dim in dims:
+        val = None
+        if dim.dim_value:
+            val = dim.dim_value
+        elif dim.dim_param:
+            val = dim.dim_param
+        else:
+            val = None
+        s.append(val)
+    return s
+
+matches = []
+for vi in list(inferred.graph.value_info) + list(inferred.graph.input) + list(inferred.graph.output):
+    if not vi.type.HasField('tensor_type'):
+        continue
+    shape = vi.type.tensor_type.shape.dim
+    s = get_shape(shape)
+    # check dims equal 3200
+    if any((isinstance(x,int) and x==3200) for x in s):
+        matches.append(('value_info', vi.name, s))
+    # check product equals 3200 when all dims ints
+    if all(isinstance(x,int) for x in s) and s and int(np.prod(s))==3200:
+        matches.append(('value_info_product', vi.name, s))
+
+# initializers
+init_matches = []
+for init in inferred.graph.initializer:
+    arr = numpy_helper.to_array(init)
+    shape = tuple(arr.shape)
+    if any(int(x)==3200 for x in shape):
+        init_matches.append(('init_shape_has_3200', init.name, shape))
+    if arr.size==3200:
+        init_matches.append(('init_size_eq_3200', init.name, shape))
+    # check if any element equals 3200 (rare)
+    if np.any(arr==3200):
+        init_matches.append(('init_contains_3200', init.name, shape))
+
+# Constant nodes
+const_matches = []
+for n in inferred.graph.node:
+    if n.op_type=='Constant':
+        for a in n.attribute:
+            if a.type==onnx.AttributeProto.TENSOR:
+                t = numpy_helper.to_array(a.t)
+                if t.size==3200 or any(int(x)==3200 for x in t.shape) or np.any(t==3200):
+                    const_matches.append((n.name or '<anon>', n.output, t.shape))
+
+# nodes of interest
+index_ops = []
+for n in inferred.graph.node:
+    if n.op_type in ('Gather','GatherND','Scatter','ScatterElements','Slice','Reshape','Split','TopK','NonMaxSuppression','Where','ReduceMax','ArgMax','ArgMin'):
+        index_ops.append((n.op_type, n.name or '<anon>', list(n.input), list(n.output), [(a.name, getattr(a, 'i', None), getattr(a, 'ints', None)) for a in n.attribute]))
+
+# report
+print('\nFound value_info matches:')
+for m in matches:
+    print(m)
+print('\nInitializer matches:')
+for m in init_matches:
+    print(m)
+print('\nConstant node matches:')
+for m in const_matches:
+    print(m)
+print('\nIndex-related ops (sample 100):')
+for op in index_ops[:200]:
+    print(op[0], 'name=', op[1], 'inputs=', op[2], 'outputs=', op[3], 'attrs=', op[4])
+
+print('\nTotal nodes:', len(inferred.graph.node))
+print('Total initializers:', len(inferred.graph.initializer))
+
+```
+
+### Output (stdout and stderr interleaved):
+
+```
+model_path: onnx/model_epoch_600.onnx
+Running shape inference...
+
+Found value_info matches:
+('value_info_product', 'getitem_54', [4, 2, 400, 1])
+('value_info_product', 'sum_1', [4, 2, 400, 1])
+('value_info_product', 'getitem_76', [4, 2, 400, 1])
+('value_info_product', 'sum_2', [4, 2, 400, 1])
+('value_info_product', 'getitem_98', [4, 2, 400, 1])
+('value_info_product', 'sum_3', [4, 2, 400, 1])
+('value_info_product', 'getitem_120', [4, 2, 400, 1])
+('value_info_product', 'sum_4', [4, 2, 400, 1])
+
+Initializer matches:
+('init_size_eq_3200', 'model.8.m.0.0.attn.pe.conv.weight', (128, 1, 5, 5))
+('init_size_eq_3200', 'model.8.m.0.1.attn.pe.conv.weight', (128, 1, 5, 5))
+('init_size_eq_3200', 'model.8.m.1.0.attn.pe.conv.weight', (128, 1, 5, 5))
+('init_size_eq_3200', 'model.8.m.1.1.attn.pe.conv.weight', (128, 1, 5, 5))
+
+Constant node matches:
+
+Index-related ops (sample 100):
+Split name= node_Split_1931 inputs= ['silu_2'] outputs= ['split_split_0', 'split_split_1'] attrs= [('axis', 1, []), ('num_outputs', 2, [])]
+Split name= node_Split_1950 inputs= ['silu_7'] outputs= ['split_1_split_0', 'split_1_split_1'] attrs= [('axis', 1, []), ('num_outputs', 2, [])]
+Reshape name= node_view inputs= ['getitem_43', 'val_178'] outputs= ['view'] attrs= [('allowzero', 1, [])]
+Reshape name= node_view_1 inputs= ['getitem_46', 'val_205'] outputs= ['view_1'] attrs= [('allowzero', 1, [])]
+Reshape name= node_view_2 inputs= ['transpose', 'val_210'] outputs= ['view_2'] attrs= [('allowzero', 1, [])]
+Reshape name= node_view_3 inputs= ['transpose_1', 'val_215'] outputs= ['view_3'] attrs= [('allowzero', 1, [])]
+Split name= node_Split_1978 inputs= ['view_2', 'val_216'] outputs= ['split_with_sizes_split_0', 'split_with_sizes_split_1'] attrs= [('axis', 2, [])]
+Reshape name= node_view_6 inputs= ['transpose_4', 'val_222'] outputs= ['view_6'] attrs= [('allowzero', 1, [])]
+Reshape name= node_view_4 inputs= ['transpose_2', 'val_222'] outputs= ['view_4'] attrs= [('allowzero', 1, [])]
+Reshape name= node_view_5 inputs= ['transpose_3', 'val_222'] outputs= ['view_5'] attrs= [('allowzero', 1, [])]
+ReduceMax name= node_max_1__0 inputs= ['mul', 'val_238'] outputs= ['getitem_54'] attrs= [('keepdims', 1, []), ('noop_with_empty_axes', 0, [])]
+Reshape name= node_Reshape_2378 inputs= ['permute', 'val_250'] outputs= ['view_7'] attrs= []
+Reshape name= node_view_8 inputs= ['getitem_65', 'val_178'] outputs= ['view_8'] attrs= [('allowzero', 1, [])]
+Reshape name= node_view_9 inputs= ['getitem_68', 'val_205'] outputs= ['view_9'] attrs= [('allowzero', 1, [])]
+Reshape name= node_view_10 inputs= ['transpose_7', 'val_210'] outputs= ['view_10'] attrs= [('allowzero', 1, [])]
+Reshape name= node_view_11 inputs= ['transpose_8', 'val_215'] outputs= ['view_11'] attrs= [('allowzero', 1, [])]
+Split name= node_Split_2000 inputs= ['view_10', 'val_216'] outputs= ['split_with_sizes_1_split_0', 'split_with_sizes_1_split_1'] attrs= [('axis', 2, [])]
+Reshape name= node_view_14 inputs= ['transpose_11', 'val_222'] outputs= ['view_14'] attrs= [('allowzero', 1, [])]
+Reshape name= node_view_12 inputs= ['transpose_9', 'val_222'] outputs= ['view_12'] attrs= [('allowzero', 1, [])]
+Reshape name= node_view_13 inputs= ['transpose_10', 'val_222'] outputs= ['view_13'] attrs= [('allowzero', 1, [])]
+ReduceMax name= node_max_2__0 inputs= ['mul_1', 'val_238'] outputs= ['getitem_76'] attrs= [('keepdims', 1, []), ('noop_with_empty_axes', 0, [])]
+Reshape name= node_Reshape_2391 inputs= ['permute_2', 'val_250'] outputs= ['view_15'] attrs= []
+Reshape name= node_view_16 inputs= ['getitem_87', 'val_178'] outputs= ['view_16'] attrs= [('allowzero', 1, [])]
+Reshape name= node_view_17 inputs= ['getitem_90', 'val_205'] outputs= ['view_17'] attrs= [('allowzero', 1, [])]
+Reshape name= node_view_18 inputs= ['transpose_14', 'val_210'] outputs= ['view_18'] attrs= [('allowzero', 1, [])]
+Reshape name= node_view_19 inputs= ['transpose_15', 'val_215'] outputs= ['view_19'] attrs= [('allowzero', 1, [])]
+Split name= node_Split_2022 inputs= ['view_18', 'val_216'] outputs= ['split_with_sizes_2_split_0', 'split_with_sizes_2_split_1'] attrs= [('axis', 2, [])]
+Reshape name= node_view_22 inputs= ['transpose_18', 'val_222'] outputs= ['view_22'] attrs= [('allowzero', 1, [])]
+Reshape name= node_view_20 inputs= ['transpose_16', 'val_222'] outputs= ['view_20'] attrs= [('allowzero', 1, [])]
+Reshape name= node_view_21 inputs= ['transpose_17', 'val_222'] outputs= ['view_21'] attrs= [('allowzero', 1, [])]
+ReduceMax name= node_max_3__0 inputs= ['mul_2', 'val_238'] outputs= ['getitem_98'] attrs= [('keepdims', 1, []), ('noop_with_empty_axes', 0, [])]
+Reshape name= node_Reshape_2404 inputs= ['permute_4', 'val_250'] outputs= ['view_23'] attrs= []
+Reshape name= node_view_24 inputs= ['getitem_109', 'val_178'] outputs= ['view_24'] attrs= [('allowzero', 1, [])]
+Reshape name= node_view_25 inputs= ['getitem_112', 'val_205'] outputs= ['view_25'] attrs= [('allowzero', 1, [])]
+Reshape name= node_view_26 inputs= ['transpose_21', 'val_210'] outputs= ['view_26'] attrs= [('allowzero', 1, [])]
+Reshape name= node_view_27 inputs= ['transpose_22', 'val_215'] outputs= ['view_27'] attrs= [('allowzero', 1, [])]
+Split name= node_Split_2044 inputs= ['view_26', 'val_216'] outputs= ['split_with_sizes_3_split_0', 'split_with_sizes_3_split_1'] attrs= [('axis', 2, [])]
+Reshape name= node_view_30 inputs= ['transpose_25', 'val_222'] outputs= ['view_30'] attrs= [('allowzero', 1, [])]
+Reshape name= node_view_28 inputs= ['transpose_23', 'val_222'] outputs= ['view_28'] attrs= [('allowzero', 1, [])]
+Reshape name= node_view_29 inputs= ['transpose_24', 'val_222'] outputs= ['view_29'] attrs= [('allowzero', 1, [])]
+ReduceMax name= node_max_4__0 inputs= ['mul_3', 'val_238'] outputs= ['getitem_120'] attrs= [('keepdims', 1, []), ('noop_with_empty_axes', 0, [])]
+Reshape name= node_Reshape_2417 inputs= ['permute_6', 'val_250'] outputs= ['view_31'] attrs= []
+Reshape name= node_view_32 inputs= ['getitem_140', 'val_693'] outputs= ['view_32'] attrs= [('allowzero', 1, [])]
+Reshape name= node_view_33 inputs= ['getitem_143', 'val_727'] outputs= ['view_36'] attrs= [('allowzero', 1, [])]
+Split name= node_Split_2075 inputs= ['transpose_28', 'val_721'] outputs= ['split_with_sizes_4_split_0', 'split_with_sizes_4_split_1'] attrs= [('axis', 2, [])]
+Reshape name= node_view_34 inputs= ['transpose_30', 'val_727'] outputs= ['view_34'] attrs= [('allowzero', 1, [])]
+Reshape name= node_view_35 inputs= ['transpose_31', 'val_727'] outputs= ['view_35'] attrs= [('allowzero', 1, [])]
+ReduceMax name= node_max_5__0 inputs= ['mul_4', 'val_238'] outputs= ['getitem_151'] attrs= [('keepdims', 1, []), ('noop_with_empty_axes', 0, [])]
+Reshape name= node_view_37 inputs= ['permute_8', 'val_748'] outputs= ['view_37'] attrs= [('allowzero', 1, [])]
+Reshape name= node_view_38 inputs= ['getitem_162', 'val_693'] outputs= ['view_38'] attrs= [('allowzero', 1, [])]
+Reshape name= node_view_39 inputs= ['getitem_165', 'val_727'] outputs= ['view_42'] attrs= [('allowzero', 1, [])]
+Split name= node_Split_2097 inputs= ['transpose_35', 'val_721'] outputs= ['split_with_sizes_5_split_0', 'split_with_sizes_5_split_1'] attrs= [('axis', 2, [])]
+Reshape name= node_view_40 inputs= ['transpose_37', 'val_727'] outputs= ['view_40'] attrs= [('allowzero', 1, [])]
+Reshape name= node_view_41 inputs= ['transpose_38', 'val_727'] outputs= ['view_41'] attrs= [('allowzero', 1, [])]
+ReduceMax name= node_max_6__0 inputs= ['mul_5', 'val_238'] outputs= ['getitem_173'] attrs= [('keepdims', 1, []), ('noop_with_empty_axes', 0, [])]
+Reshape name= node_view_43 inputs= ['permute_10', 'val_748'] outputs= ['view_43'] attrs= [('allowzero', 1, [])]
+Reshape name= node_view_44 inputs= ['getitem_184', 'val_693'] outputs= ['view_44'] attrs= [('allowzero', 1, [])]
+Reshape name= node_view_45 inputs= ['getitem_187', 'val_727'] outputs= ['view_48'] attrs= [('allowzero', 1, [])]
+Split name= node_Split_2119 inputs= ['transpose_42', 'val_721'] outputs= ['split_with_sizes_6_split_0', 'split_with_sizes_6_split_1'] attrs= [('axis', 2, [])]
+Reshape name= node_view_46 inputs= ['transpose_44', 'val_727'] outputs= ['view_46'] attrs= [('allowzero', 1, [])]
+Reshape name= node_view_47 inputs= ['transpose_45', 'val_727'] outputs= ['view_47'] attrs= [('allowzero', 1, [])]
+ReduceMax name= node_max_7__0 inputs= ['mul_6', 'val_238'] outputs= ['getitem_195'] attrs= [('keepdims', 1, []), ('noop_with_empty_axes', 0, [])]
+Reshape name= node_view_49 inputs= ['permute_12', 'val_748'] outputs= ['view_49'] attrs= [('allowzero', 1, [])]
+Reshape name= node_view_50 inputs= ['getitem_206', 'val_693'] outputs= ['view_50'] attrs= [('allowzero', 1, [])]
+Reshape name= node_view_51 inputs= ['getitem_209', 'val_727'] outputs= ['view_54'] attrs= [('allowzero', 1, [])]
+Split name= node_Split_2141 inputs= ['transpose_49', 'val_721'] outputs= ['split_with_sizes_7_split_0', 'split_with_sizes_7_split_1'] attrs= [('axis', 2, [])]
+Reshape name= node_view_52 inputs= ['transpose_51', 'val_727'] outputs= ['view_52'] attrs= [('allowzero', 1, [])]
+Reshape name= node_view_53 inputs= ['transpose_52', 'val_727'] outputs= ['view_53'] attrs= [('allowzero', 1, [])]
+ReduceMax name= node_max_8__0 inputs= ['mul_7', 'val_238'] outputs= ['getitem_217'] attrs= [('keepdims', 1, []), ('noop_with_empty_axes', 0, [])]
+Reshape name= node_view_55 inputs= ['permute_14', 'val_748'] outputs= ['view_55'] attrs= [('allowzero', 1, [])]
+Reshape name= node_view_56 inputs= ['cat_16', 'val_1786'] outputs= ['view_56'] attrs= [('allowzero', 1, [])]
+Split name= node_Split_2247 inputs= ['silu_54'] outputs= ['split_2_split_0', 'split_2_split_1'] attrs= [('axis', 1, []), ('num_outputs', 2, [])]
+Reshape name= node_view_57 inputs= ['cat_17', 'val_1786'] outputs= ['view_57'] attrs= [('allowzero', 1, [])]
+Reshape name= node_view_58 inputs= ['cat_18', 'val_1786'] outputs= ['view_58'] attrs= [('allowzero', 1, [])]
+Split name= node_Split_2335 inputs= ['cat_19', 'val_1903'] outputs= ['split_with_sizes_8_split_0', 'split_with_sizes_8_split_1'] attrs= [('axis', 1, [])]
+Reshape name= node_view_68 inputs= ['split_with_sizes_8_split_0', 'val_1909'] outputs= ['view_68'] attrs= [('allowzero', 1, [])]
+Reshape name= node_view_69 inputs= ['conv2d_127', 'val_1919'] outputs= ['view_69'] attrs= [('allowzero', 1, [])]
+Split name= node_Split_2342 inputs= ['view_69'] outputs= ['split_3_split_0', 'split_3_split_1'] attrs= [('axis', 1, []), ('num_outputs', 2, [])]
+
+Total nodes: 555
+Total initializers: 276
+```
+
+### About This Tool
+
+This tool executes Python code directly without shell quoting issues that would occur with `python -c`. It's ideal for running one-off Python snippets without creating temporary files. The output shows stdout and stderr interleaved in chronological order, giving you the exact sequence of output as it would appear when running the code in a terminal.
