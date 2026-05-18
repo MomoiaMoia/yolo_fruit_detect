@@ -728,9 +728,13 @@ class C3k2(C2f):
     def __init__(self, c1, c2, n=1, c3k=False, e=0.5, g=1, shortcut=True):
         """Initializes the C3k2 module, a faster CSP Bottleneck with 2 convolutions and optional C3k blocks."""
         super().__init__(c1, c2, n, shortcut, g, e)
-        self.m = nn.ModuleList(
-            C3k(self.c, self.c, 2, shortcut, g) if c3k else Bottleneck(self.c, self.c, shortcut, g) for _ in range(n)
-        )
+        # self.m = nn.ModuleList(
+        #     C3k(self.c, self.c, 2, shortcut, g) if c3k else Bottleneck(self.c, self.c, shortcut, g) for _ in range(n)
+        # )
+        self.m = nn.ModuleList([
+            Bottleneck(self.c, self.c, shortcut, g),
+            Bottleneck(self.c, self.c, shortcut, g)
+        ])
 
 
 class C3k(C3):
@@ -1213,6 +1217,12 @@ class AAttn(nn.Module):
 
         self.pe = Conv(all_head_dim, dim, 5, 1, 2, g=dim, act=False)
 
+    def matmul(self, a, b):
+        B, N, a3, a4 = a.shape
+        _, _, b3, b4 = b.shape
+        attn = a.reshape(B*N, a3, a4, 1) * b.reshape(B*N, 1, b3, b4)
+        attn = F.adaptive_avg_pool2d(attn, (1, b4)) * a4
+        return attn.reshape(B, N, a3, b4)
 
     def forward(self, x):
         """Processes the input tensor 'x' through the area-attention"""
@@ -1228,7 +1238,8 @@ class AAttn(nn.Module):
             qk = qk.reshape(B * self.area, N // self.area, C * 2)
             v = v.reshape(B * self.area, N // self.area, C)
             B, N, _ = qk.shape
-        q, k = qk.split([C, C], dim=2)
+        # q, k = qk.split([C, C], dim=2)
+        q, k = qk[:, :, :C], qk[:, :, C:2*C]
 
         if x.is_cuda and USE_FLASH_ATTN:
             q = q.view(B, N, self.num_heads, self.head_dim)
@@ -1245,12 +1256,16 @@ class AAttn(nn.Module):
             k = k.transpose(1, 2).view(B, self.num_heads, self.head_dim, N)
             v = v.transpose(1, 2).view(B, self.num_heads, self.head_dim, N)
 
-            attn = (q.transpose(-2, -1) @ k) * (self.head_dim ** -0.5)
-            max_attn = attn.max(dim=-1, keepdim=True).values
-            exp_attn = torch.exp(attn - max_attn)
-            attn = exp_attn / exp_attn.sum(dim=-1, keepdim=True)
-            x = (v @ attn.transpose(-2, -1))
+            # attn = (q.transpose(-2, -1) @ k) * (self.head_dim ** -0.5)
+            # max_attn = attn.max(dim=-1, keepdim=True).values
+            # exp_attn = torch.exp(attn - max_attn)
+            # attn = exp_attn / exp_attn.sum(dim=-1, keepdim=True)
+            # x = (v @ attn.transpose(-2, -1))
 
+            attn = self.matmul(q.transpose(-2, -1), k) * (self.head_dim ** -0.5)
+            attn = attn.softmax(dim=-1)
+            x = self.matmul(v, attn.transpose(-2, -1))
+            
             x = x.permute(0, 3, 1, 2)
 
         if self.area > 1:

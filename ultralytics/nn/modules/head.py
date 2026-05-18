@@ -27,8 +27,8 @@ class Detect(nn.Module):
     end2end = False  # end2end
     max_det = 300  # max_det
     shape = None
-    anchors = torch.empty(0)  # init
-    strides = torch.empty(0)  # init
+    # anchors = torch.empty(0)  # init
+    # strides = torch.empty(0)  # init
     legacy = False  # backward compatibility for v3/v5/v8/v9 models
 
     def __init__(self, nc=80, ch=()):
@@ -38,7 +38,10 @@ class Detect(nn.Module):
         self.nl = len(ch)  # number of detection layers
         self.reg_max = 16  # DFL channels (ch[0] // 16 to scale 4/8/12/16/20 for n/s/m/l/x)
         self.no = nc + self.reg_max * 4  # number of outputs per anchor
-        self.stride = torch.zeros(self.nl)  # strides computed during build
+        # self.stride = torch.zeros(self.nl)  # strides computed during build
+        self.register_buffer('anchors', torch.empty(0), persistent=True)
+        self.register_buffer('strides', torch.empty(0), persistent=True)
+        
         c2, c3 = max((16, ch[0] // 4, self.reg_max * 4)), max(ch[0], min(self.nc, 100))  # channels
         self.cv2 = nn.ModuleList(
             nn.Sequential(Conv(x, c2, 3), Conv(c2, c2, 3), nn.Conv2d(c2, 4 * self.reg_max, 1)) for x in ch
@@ -103,8 +106,14 @@ class Detect(nn.Module):
         shape = x[0].shape  # BCHW
         x_cat = torch.cat([xi.view(shape[0], self.no, -1) for xi in x], 2)
         if self.format != "imx" and (self.dynamic or self.shape != shape):
-            self.anchors, self.strides = (x.transpose(0, 1) for x in make_anchors(x, self.stride, 0.5))
+            # self.anchors, self.strides = (x.transpose(0, 1) for x in make_anchors(x, self.stride, 0.5))
+            
             self.shape = shape
+            # make_anchors 返回 (anchors, strides)，每个形状为 [num_anchors, 2]
+            anchors, strides = make_anchors(x, self.stride, 0.5)
+            # 直接赋值给buffer（不需要重新register）
+            self.anchors = anchors.transpose(0, 1).contiguous()
+            self.strides = strides.transpose(0, 1).contiguous()
 
         if self.export and self.format in {"saved_model", "pb", "tflite", "edgetpu", "tfjs"}:  # avoid TF FlexSplitV ops
             box = x_cat[:, : self.reg_max * 4]
