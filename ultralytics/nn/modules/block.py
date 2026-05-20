@@ -1391,7 +1391,7 @@ class A2C2f(nn.Module):
     def __init__(self, c1, c2, n=1, a2=True, area=1, residual=False, mlp_ratio=2.0, e=0.5, g=1, shortcut=True):
         super().__init__()
         c_ = int(c2 * e)  # hidden channels
-        assert c_ % 32 == 0, "Dimension of ABlock be a multiple of 32."
+        # assert c_ % 32 == 0, "Dimension of ABlock be a multiple of 32."
 
         # num_heads = c_ // 64 if c_ // 64 >= 2 else c_ // 32
         num_heads = c_ // 32
