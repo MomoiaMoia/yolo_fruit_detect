@@ -206,7 +206,8 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
-/strawberry_cls
+/data/strawberry_cls
+/data/blueberry_cls
 /ckpts
 /logs
 /onnx

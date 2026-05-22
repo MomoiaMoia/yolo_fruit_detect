@@ -22,25 +22,26 @@ def polygan2box(text, format='xyxy'):
         return [class_id, (x_min + x_max) / 2, (y_min + y_max) / 2, x_max - x_min, y_max - y_min]
     
 aug = A.Compose([
+    A.Resize(192, 192, p=1.0),
     # 1st
-    A.Affine(translate_percent=(-0.0625, 0.0625), scale=(0.9, 1.1), rotate=(-10, 10), p=0.5),
-    A.RandomSizedBBoxSafeCrop(640, 640, p=0.3),
-    # 2nd
-    A.Blur(p=0.01),
-    A.MedianBlur(p=0.01),
-    A.ToGray(p=0.01),
-    A.CLAHE(p=0.01),
-    A.RandomBrightnessContrast(p=0.01),
-    A.RandomGamma(p=0.01),
-    A.ImageCompression(compression_type='jpeg', quality_range=(75, 100), p=0.01),
-    # 3rd
-    A.HorizontalFlip(p=0.5),
-    A.VerticalFlip(p=0.5),
+    # A.Affine(translate_percent=(-0.0625, 0.0625), scale=(0.9, 1.1), rotate=(-10, 10), p=0.5),
+    # A.RandomSizedBBoxSafeCrop(192, 192, p=0.3),
+    # # 2nd
+    # A.Blur(p=0.01),
+    # A.MedianBlur(p=0.01),
+    # A.ToGray(p=0.01),
+    # A.CLAHE(p=0.01),
+    # A.RandomBrightnessContrast(p=0.01),
+    # A.RandomGamma(p=0.01),
+    # A.ImageCompression(compression_type='jpeg', quality_range=(75, 100), p=0.01),
+    # # 3rd
+    # A.HorizontalFlip(p=0.5),
+    # A.VerticalFlip(p=0.5),
     # normalize and to tensor
 ], bbox_params=A.BboxParams(format='yolo', label_fields=['class_labels']))
 
 
-class StrawberryDataset(torch.utils.data.Dataset):
+class ImageDataset(torch.utils.data.Dataset):
     def __init__(self, image_paths, augment=False):
         self.image_paths = image_paths
         self.augment = augment
@@ -53,7 +54,8 @@ class StrawberryDataset(torch.utils.data.Dataset):
 
         label_path = self.label_paths[index]
         lines = open(label_path, 'r').readlines()
-        labels = [polygan2box(line, format='cxcywh') for line in lines]
+        labels = [line.replace("\n", "").split(" ") for line in lines]
+        labels = [[int(label[0]), float(label[1]), float(label[2]), float(label[3]), float(label[4])] for label in labels]
 
         if self.augment:
             class_labels = [label[0] for label in labels]

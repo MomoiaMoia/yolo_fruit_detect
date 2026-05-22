@@ -61,8 +61,6 @@ class Trainer():
             self.model.load(ckpt)
             print(f"Loaded pretrained weights from: {pretrained_weights}")
             
-        self._freeze_layers()
-
         # EMA, optimizer, scheduler, loss -------------------------------------
         self.use_ema = self.train_cfg['trainer']['use_ema']
         if self.use_ema:
@@ -75,11 +73,13 @@ class Trainer():
 
         self.model.args = SimpleNamespace(**{**default_cfg, **model_cfg})
 
-        self.optimizer = self.build_optimizer(group_weight_decay=self.train_cfg['trainer']['group_wd'])
-        # self.optimizer = torch.optim.Adam(self.model.parameters(), 
-        #                                   lr=self.train_cfg['trainer']['lr'],
-        #                                   weight_decay=self.train_cfg['trainer']['wd'],
-        #                                   betas=self.train_cfg['trainer']['betas'])
+        if self.freeze is not None:
+            self.optimizer = self.build_optimizer()
+        else:
+            self.optimizer = torch.optim.Adam(self.model.parameters(), 
+                                            lr=self.train_cfg['trainer']['lr'],
+                                            weight_decay=self.train_cfg['trainer']['wd'],
+                                            betas=self.train_cfg['trainer']['betas'])
 
         epochs = self.train_cfg['trainer']['epochs']
         lrf = self.train_cfg['trainer']['lrf']
@@ -92,42 +92,42 @@ class Trainer():
 
         self.loss = self.model.init_criterion()
         
-        # yolo dataset
-        self.train_ds = build_yolo_dataset(SimpleNamespace(**{**default_cfg, **self.train_cfg["augmentation"]}), 
-                                           img_path=osp.join(self.train_cfg['dataset']['root_dir'], "train"), 
-                                           batch=self.train_cfg['dataset']['batch_size'], 
-                                           data=self.train_cfg['dataset'],
-                                           mode="train")
+        # # yolo dataset
+        # self.train_ds = build_yolo_dataset(SimpleNamespace(**{**default_cfg, **self.train_cfg["augmentation"]}), 
+        #                                    img_path=osp.join(self.train_cfg['dataset']['root_dir'], "train"), 
+        #                                    batch=self.train_cfg['dataset']['batch_size'], 
+        #                                    data=self.train_cfg['dataset'],
+        #                                    mode="train")
         
-        self.val_ds = build_yolo_dataset(SimpleNamespace(**{**default_cfg, **self.train_cfg["augmentation"]}), 
-                                         img_path=osp.join(self.train_cfg['dataset']['root_dir'], "val"), 
-                                         batch=1, 
-                                         data=self.train_cfg['dataset'], 
-                                         mode="val")
+        # self.val_ds = build_yolo_dataset(SimpleNamespace(**{**default_cfg, **self.train_cfg["augmentation"]}), 
+        #                                  img_path=osp.join(self.train_cfg['dataset']['root_dir'], "val"), 
+        #                                  batch=1, 
+        #                                  data=self.train_cfg['dataset'], 
+        #                                  mode="val")
         
-        self.train_dl = DataLoader(self.train_ds, 
-                                   batch_size=self.train_cfg['dataset']['batch_size'], 
-                                   shuffle=True, 
-                                   num_workers=self.train_cfg['dataset']['num_workers'], 
-                                   persistent_workers=True,
-                                   pin_memory=True,
-                                   collate_fn=self.train_ds.collate_fn)
-        self.val_dl = DataLoader(self.val_ds, 
-                                 batch_size=1, 
-                                 shuffle=False,
-                                 num_workers=self.train_cfg['dataset']['num_workers'],
-                                 persistent_workers=True,
-                                 pin_memory=True,
-                                 collate_fn=self.val_ds.collate_fn)
+        # self.train_dl = DataLoader(self.train_ds, 
+        #                            batch_size=self.train_cfg['dataset']['batch_size'], 
+        #                            shuffle=True, 
+        #                            num_workers=self.train_cfg['dataset']['num_workers'], 
+        #                            persistent_workers=True,
+        #                            pin_memory=True,
+        #                            collate_fn=self.train_ds.collate_fn)
+        # self.val_dl = DataLoader(self.val_ds, 
+        #                          batch_size=1, 
+        #                          shuffle=False,
+        #                          num_workers=self.train_cfg['dataset']['num_workers'],
+        #                          persistent_workers=True,
+        #                          pin_memory=True,
+        #                          collate_fn=self.val_ds.collate_fn)
         
         # legacy dataset
-        # from datasets import StrawberryDataset
-        # self.train_ds = StrawberryDataset(glob.glob(osp.join(self.train_cfg['dataset']['root_dir'], "train", "images", "*.jpg")), augment=False)
-        # self.train_dl = DataLoader(self.train_ds, batch_size=self.train_cfg['dataset']['batch_size'],
-        #                            shuffle=True,collate_fn=StrawberryDataset.collate_fn)
-        # self.val_ds = StrawberryDataset(glob.glob(osp.join(self.train_cfg['dataset']['root_dir'], "val", "images", "*.jpg")), augment=False)
-        # self.val_dl = DataLoader(self.val_ds, batch_size=self.train_cfg['dataset']['batch_size'],
-        #                          shuffle=False, collate_fn=StrawberryDataset.collate_fn)
+        from datasets import ImageDataset
+        self.train_ds = ImageDataset(glob.glob(osp.join(self.train_cfg['dataset']['root_dir'], "train", "images", "*.jpg")), augment=False)
+        self.train_dl = DataLoader(self.train_ds, batch_size=self.train_cfg['dataset']['batch_size'],
+                                   shuffle=True,collate_fn=ImageDataset.collate_fn)
+        self.val_ds = ImageDataset(glob.glob(osp.join(self.train_cfg['dataset']['root_dir'], "val", "images", "*.jpg")), augment=False)
+        self.val_dl = DataLoader(self.val_ds, batch_size=self.train_cfg['dataset']['batch_size'],
+                                 shuffle=False, collate_fn=ImageDataset.collate_fn)
  
         self.total_train = len(self.train_dl)
         self.total_val = len(self.val_dl)
@@ -136,6 +136,7 @@ class Trainer():
         
         EXP_TIME = time.strftime("%Y%m%d-%H%M%S")
         LOG_DIR = osp.join(self.train_cfg['trainer']['log_dir'], EXP_TIME)
+        self.best_map50_95 = 0
         self.writer = SummaryWriter(log_dir=LOG_DIR)
         
     def train(self):
@@ -168,18 +169,25 @@ class Trainer():
             self.writer.add_scalar('LR', self.scheduler.get_last_lr()[0], epoch)
 
             if (epoch + 1) % self.train_cfg['trainer']['metric_every'] == 0:
-                val_model = self.ema_model.ema if self.use_ema else self.model
+                if self.use_ema:
+                    val_model = self.ema_model.ema
+                else:
+                    val_model = self.model
+                    val_model.eval()
+
                 self.validate(val_model, epoch, split="train")
                 self.validate(val_model, epoch, split="val")
-            if (epoch + 1) % self.train_cfg['trainer']['save_every'] == 0:
-                self._save_all(epoch)
+
+                if not self.use_ema:
+                    val_model.train()
+            # if (epoch + 1) % self.train_cfg['trainer']['save_every'] == 0:
+            #     self._save_all(epoch)
 
             self.scheduler.step()
 
         self._save_all(self.train_cfg['trainer']['epochs'])
 
     def validate(self, val_model, epoch=0, split="val"):
-        val_model.eval()
         pred_list = []
         target_list = []
         
@@ -192,12 +200,19 @@ class Trainer():
         
         with torch.no_grad():
             sample = 0
+            loss_total, loss_box, loss_cls, loss_dfl = 0.0, 0.0, 0.0, 0.0
             for batch in tqdm(dl, desc="Validating", dynamic_ncols=True):
                 images = batch["img"].float() / 255.0
                 images = images.to(self.device)
-                pred, _ = val_model(images)
+                pred, features = val_model(images)
                 pred = ops.non_max_suppression(pred, conf_thres=0.25, iou_thres=0.45)
 
+                loss, loss_items = self.loss(features, batch)
+                loss_total += loss.item()
+                loss_box += loss_items[0]
+                loss_cls += loss_items[1]
+                loss_dfl += loss_items[2]
+                
                 batch_size = images.shape[0]
                 img_h, img_w = images.shape[2], images.shape[3]
 
@@ -223,6 +238,12 @@ class Trainer():
                 if split == "train" and sample >= total:
                     break
 
+            if split != "train":
+                self.writer.add_scalar('Loss/VAL_Total', loss_total / sample, epoch)
+                self.writer.add_scalar('Loss/VAL_Box', loss_box / sample, epoch)
+                self.writer.add_scalar('Loss/VAL_Cls', loss_cls / sample, epoch)
+                self.writer.add_scalar('Loss/VAL_DFL', loss_dfl / sample, epoch)
+
         num_classes = 3
         metrics = mean_ap(pred_list, target_list, num_classes=num_classes)
 
@@ -231,17 +252,19 @@ class Trainer():
         self.writer.add_scalar(f"{split.upper()}/F1", metrics["f1"], epoch)
         self.writer.add_scalar(f"{split.upper()}/mAP50", metrics["map50"], epoch)
         self.writer.add_scalar(f"{split.upper()}/mAP50_95", metrics["map50_95"], epoch)
+        if split == "val":
+            if metrics["map50_95"] > self.best_map50_95:
+                self.best_map50_95 = metrics["map50_95"]
+                self._save_all(epoch, endfix=f"{self.best_map50_95:.4f}")
 
         print(
             f"{split.upper()} Precision: {metrics['precision']:.4f}, Recall: {metrics['recall']:.4f}, "
             f"F1: {metrics['f1']:.4f}, mAP50: {metrics['map50']:.4f}, mAP50-95: {metrics['map50_95']:.4f}"
         )
-        
-        val_model.train()
         return metrics
 
-    def _save_all(self, epoch):
-        ckpt_path = osp.join(self.train_cfg['trainer']['ckpt_dir'], f"model_epoch_{epoch}.pth")
+    def _save_all(self, epoch, endfix=""):
+        ckpt_path = osp.join(self.train_cfg['trainer']['ckpt_dir'], f"model_epoch_{epoch}_{endfix}.pth")
         torch.save({
             'epoch': epoch,
             'model': self.model.state_dict(),
@@ -277,36 +300,36 @@ class Trainer():
             elif not param.requires_grad and param.dtype.is_floating_point:
                 param.requires_grad = True
         time.sleep(0.5)
-        print(f"Frozen parameters: {frozen}/{total}".ljust(50))
+        print(f"[{__name__}] say: " + f"Frozen parameters: {frozen}/{total}".ljust(50))
 
-    def build_optimizer(self, group_weight_decay=True):
-        norms = tuple(v for k, v in nn.__dict__.items() if 'Norm' in k)
-        decay, no_decay = [], []
-        for module_name, module in self.model.named_modules():
-            for param_name, param in module.named_parameters(recurse=False):
-                if isinstance(module, norms):
-                    no_decay.append(param)
-                elif param_name.endswith('bias'):
-                    no_decay.append(param)
-                else:
-                    decay.append(param)
+    def build_optimizer(self):
+        pretrain_weight_layers = 6
+        freeze_layers = self.train_cfg['trainer']['freeze']
+        
+        self._freeze_layers()
+        if isinstance(freeze_layers, list):
+            freeze_layers = freeze_layers[-1] + 1
+        if pretrain_weight_layers > freeze_layers:
+            base_params, finetune_params = [], []
+            finetune_layer_names = [f"model.{idx}." for idx in range(freeze_layers, pretrain_weight_layers)]
+            for name, param in self.model.named_parameters():
+                if any(prefix in name for prefix in finetune_layer_names) and param.requires_grad:
+                    finetune_params.append(param)
+                    print(f"Adding to fine-tune group: {name}".ljust(50), end="\r")
+                    time.sleep(0.01)
+                elif param.requires_grad:
+                    base_params.append(param)
+            print(f"[{__name__}] say: " + f"{finetune_layer_names} has been added to the fine-tune group.".ljust(50))
 
-        if group_weight_decay:
-            optim_groups = [
-                {'params': decay, 'weight_decay': self.train_cfg['trainer']['wd']},
-                {'params': no_decay, 'weight_decay': 0.0}
-            ]
-
-            total = sum(p.numel() for p in self.model.parameters())
-            nd = sum(p.numel() for p in no_decay)
-            print("Total parameters:", total)
-            print("Decay ratio:", (total - nd) / total)
+            optimizer = torch.optim.AdamW([
+                {"params": base_params, "lr": self.train_cfg['trainer']['lr'], "weight_decay": self.train_cfg['trainer']['wd']},
+                {"params": finetune_params, "lr": self.train_cfg['trainer']['lr_finetune'], "weight_decay": self.train_cfg['trainer']['wd']}
+            ], betas=self.train_cfg['trainer']['betas'])
         else:
-            optim_groups =[{'params': self.model.parameters(), 'weight_decay': self.train_cfg['trainer']['wd']}]
-
-        optimizer = torch.optim.Adam(optim_groups,
-                                     lr=self.train_cfg['trainer']['lr'],
-                                     betas=self.train_cfg['trainer']['betas'])
+            optimizer = torch.optim.AdamW(self.model.parameters(), 
+                                          lr=self.train_cfg['trainer']['lr'], 
+                                          weight_decay=self.train_cfg['trainer']['wd'], 
+                                          betas=self.train_cfg['trainer']['betas'])
         return optimizer
 
     
