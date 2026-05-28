@@ -207,8 +207,10 @@ marimo/_lsp/
 __marimo__/
 
 /data/strawberry_cls
-/data/blueberry_cls
+/data/blueberry_cls_v1
+/data/blueberry_cls_v2
 /ckpts
 /logs
 /onnx
 calibration_image_sample_data_20x128x128x3_float32.npy
+tmp_tflite_int8_calibration_images.npy

@@ -92,42 +92,42 @@ class Trainer():
 
         self.loss = self.model.init_criterion()
         
-        # # yolo dataset
-        # self.train_ds = build_yolo_dataset(SimpleNamespace(**{**default_cfg, **self.train_cfg["augmentation"]}), 
-        #                                    img_path=osp.join(self.train_cfg['dataset']['root_dir'], "train"), 
-        #                                    batch=self.train_cfg['dataset']['batch_size'], 
-        #                                    data=self.train_cfg['dataset'],
-        #                                    mode="train")
+        # yolo dataset
+        self.train_ds = build_yolo_dataset(SimpleNamespace(**{**default_cfg, **self.train_cfg["augmentation"]}), 
+                                           img_path=osp.join(self.train_cfg['dataset']['root_dir'], "train"), 
+                                           batch=self.train_cfg['dataset']['batch_size'], 
+                                           data=self.train_cfg['dataset'],
+                                           mode="train")
         
-        # self.val_ds = build_yolo_dataset(SimpleNamespace(**{**default_cfg, **self.train_cfg["augmentation"]}), 
-        #                                  img_path=osp.join(self.train_cfg['dataset']['root_dir'], "val"), 
-        #                                  batch=1, 
-        #                                  data=self.train_cfg['dataset'], 
-        #                                  mode="val")
+        self.val_ds = build_yolo_dataset(SimpleNamespace(**{**default_cfg, **self.train_cfg["augmentation"]}), 
+                                         img_path=osp.join(self.train_cfg['dataset']['root_dir'], "val"), 
+                                         batch=1, 
+                                         data=self.train_cfg['dataset'], 
+                                         mode="val")
         
-        # self.train_dl = DataLoader(self.train_ds, 
-        #                            batch_size=self.train_cfg['dataset']['batch_size'], 
-        #                            shuffle=True, 
-        #                            num_workers=self.train_cfg['dataset']['num_workers'], 
-        #                            persistent_workers=True,
-        #                            pin_memory=True,
-        #                            collate_fn=self.train_ds.collate_fn)
-        # self.val_dl = DataLoader(self.val_ds, 
-        #                          batch_size=1, 
-        #                          shuffle=False,
-        #                          num_workers=self.train_cfg['dataset']['num_workers'],
-        #                          persistent_workers=True,
-        #                          pin_memory=True,
-        #                          collate_fn=self.val_ds.collate_fn)
+        self.train_dl = DataLoader(self.train_ds, 
+                                   batch_size=self.train_cfg['dataset']['batch_size'], 
+                                   shuffle=True, 
+                                   num_workers=self.train_cfg['dataset']['num_workers'], 
+                                   persistent_workers=True,
+                                   pin_memory=True,
+                                   collate_fn=self.train_ds.collate_fn)
+        self.val_dl = DataLoader(self.val_ds, 
+                                 batch_size=1, 
+                                 shuffle=False,
+                                 num_workers=self.train_cfg['dataset']['num_workers'],
+                                 persistent_workers=True,
+                                 pin_memory=True,
+                                 collate_fn=self.val_ds.collate_fn)
         
         # legacy dataset
-        from datasets import ImageDataset
-        self.train_ds = ImageDataset(glob.glob(osp.join(self.train_cfg['dataset']['root_dir'], "train", "images", "*.jpg")), augment=False)
-        self.train_dl = DataLoader(self.train_ds, batch_size=self.train_cfg['dataset']['batch_size'],
-                                   shuffle=True,collate_fn=ImageDataset.collate_fn)
-        self.val_ds = ImageDataset(glob.glob(osp.join(self.train_cfg['dataset']['root_dir'], "val", "images", "*.jpg")), augment=False)
-        self.val_dl = DataLoader(self.val_ds, batch_size=self.train_cfg['dataset']['batch_size'],
-                                 shuffle=False, collate_fn=ImageDataset.collate_fn)
+        # from datasets import ImageDataset
+        # self.train_ds = ImageDataset(glob.glob(osp.join(self.train_cfg['dataset']['root_dir'], "train", "images", "*.jpg")), augment=False)
+        # self.train_dl = DataLoader(self.train_ds, batch_size=self.train_cfg['dataset']['batch_size'],
+        #                            shuffle=True,collate_fn=ImageDataset.collate_fn)
+        # self.val_ds = ImageDataset(glob.glob(osp.join(self.train_cfg['dataset']['root_dir'], "val", "images", "*.jpg")), augment=False)
+        # self.val_dl = DataLoader(self.val_ds, batch_size=self.train_cfg['dataset']['batch_size'],
+        #                          shuffle=False, collate_fn=ImageDataset.collate_fn)
  
         self.total_train = len(self.train_dl)
         self.total_val = len(self.val_dl)
@@ -205,7 +205,7 @@ class Trainer():
                 images = batch["img"].float() / 255.0
                 images = images.to(self.device)
                 pred, features = val_model(images)
-                pred = ops.non_max_suppression(pred, conf_thres=0.25, iou_thres=0.45)
+                pred = ops.non_max_suppression(pred, conf_thres=0.45, iou_thres=0.45)
 
                 loss, loss_items = self.loss(features, batch)
                 loss_total += loss.item()
@@ -244,7 +244,7 @@ class Trainer():
                 self.writer.add_scalar('Loss/VAL_Cls', loss_cls / sample, epoch)
                 self.writer.add_scalar('Loss/VAL_DFL', loss_dfl / sample, epoch)
 
-        num_classes = 3
+        num_classes = 1
         metrics = mean_ap(pred_list, target_list, num_classes=num_classes)
 
         self.writer.add_scalar(f"{split.upper()}/Precision", metrics["precision"], epoch)

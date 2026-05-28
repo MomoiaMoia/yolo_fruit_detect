@@ -70,8 +70,14 @@ class Detect(nn.Module):
             x[i] = torch.cat((self.cv2[i](x[i]), self.cv3[i](x[i])), 1)
         if self.training:  # Training path
             return x
-        y = self._inference(x)
-        return y if self.export else (y, x)
+            
+        if self.export:
+            y_box, y_cls = self._inference(x)
+            return y_box, y_cls
+        else:
+            y = self._inference(x)
+            return (y, x)
+        # return y if self.export else (y, x)
 
     def forward_end2end(self, x):
         """
@@ -128,6 +134,8 @@ class Detect(nn.Module):
         else:
             dbox = self.decode_bboxes(self.dfl(box), self.anchors.unsqueeze(0)) * self.strides
 
+        if self.export:
+            return dbox, cls.sigmoid()
         return torch.cat((dbox, cls.sigmoid()), 1)
 
     def bias_init(self):
