@@ -209,6 +209,7 @@ __marimo__/
 /data/strawberry_cls
 /data/blueberry_cls_v1
 /data/blueberry_cls_v2
+/data/blueberry_cls_v3
 /ckpts
 /logs
 /onnx
