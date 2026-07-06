@@ -3,6 +3,7 @@ import time
 import glob
 import shutil
 import random
+import math
 
 import yaml
 import torch
@@ -93,7 +94,8 @@ class Trainer():
         self.loss = self.model.init_criterion()
         
         # yolo dataset
-        self.train_ds = build_yolo_dataset(SimpleNamespace(**{**default_cfg, **self.train_cfg["augmentation"]}), 
+        self.train_hyp = SimpleNamespace(**{**default_cfg, **self.train_cfg["augmentation"]})
+        self.train_ds = build_yolo_dataset(self.train_hyp, 
                                            img_path=osp.join(self.train_cfg['dataset']['root_dir'], "train"), 
                                            batch=self.train_cfg['dataset']['batch_size'], 
                                            data=self.train_cfg['dataset'],
@@ -141,9 +143,33 @@ class Trainer():
         
     def train(self):
         self.model.train()
-        for epoch in range(self.train_cfg['trainer']['epochs']):
+        
+        epochs = self.train_cfg['trainer']['epochs']
+        close_mosaic = self.train_cfg['trainer'].get('close_mosaic', 0)
+        
+        for epoch in range(epochs):
+            # close_mosaic: 最后 N 个 epoch 关闭 mosaic，在完整原图上微调
+            if close_mosaic > 0 and epoch == (epochs - close_mosaic):
+                print(f"\n[Epoch {epoch}] Closing mosaic augmentation...")
+                self.train_hyp.mosaic = 0.0
+                self.train_hyp.copy_paste = 0.0
+                self.train_hyp.mixup = 0.0
+                self.train_ds.close_mosaic(self.train_hyp)
+                # 重新创建 dataloader 以使用新的 transform
+                self.train_dl = torch.utils.data.DataLoader(
+                    self.train_ds,
+                    batch_size=self.train_cfg['dataset']['batch_size'],
+                    shuffle=True,
+                    num_workers=self.train_cfg['dataset']['num_workers'],
+                    persistent_workers=True,
+                    pin_memory=True,
+                    collate_fn=self.train_ds.collate_fn,
+                )
+                self.total_train = len(self.train_dl)
+                print(f"  Mosaic closed. Dataset now uses clean full images.")
+            
             loss_total, loss_box, loss_cls, loss_dfl = 0.0, 0.0, 0.0, 0.0
-            for batch in tqdm(self.train_dl, desc=f"Epoch {epoch + 1}/{self.train_cfg['trainer']['epochs']}", dynamic_ncols=True):
+            for batch in tqdm(self.train_dl, desc=f"Epoch {epoch + 1}/{epochs}", dynamic_ncols=True):
                 images = batch["img"].float() / 255.0
                 images = images.to(self.device)
                 

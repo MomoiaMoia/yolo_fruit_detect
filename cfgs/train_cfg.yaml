@@ -11,7 +11,8 @@ trainer:
   dropout: 0.0
   cos_lr: False
   betas: [0.9, 0.999]
-  epochs: 600
+  epochs: 400
+  close_mosaic: 40
   log_dir: 'logs'
   ckpt_dir: 'ckpts'
 
@@ -25,7 +26,7 @@ dataset:
   names:
     0: ripe
   # root_dir: 'strawberry_cls'
-  root_dir: 'data/blueberry_cls_v2'
+  root_dir: 'data/blueberry_cls_v4'
   batch_size: 16
   num_workers: 8
 
