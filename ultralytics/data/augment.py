@@ -1844,8 +1844,9 @@ class Albumentations:
 
             # Transforms
             T = [
-                A.Blur(p=0.01),
-                A.MedianBlur(p=0.01),
+                A.GaussianBlur(blur_limit=(7, 21), p=0.2),
+                A.Defocus(radius=(3, 10), alias_blur=(0.1, 0.5), p=0.15),
+                A.MedianBlur(blur_limit=9, p=0.1),
                 A.ToGray(p=0.01),
                 A.CLAHE(p=0.01),
                 A.RandomBrightnessContrast(p=0.0),

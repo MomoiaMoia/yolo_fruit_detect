@@ -27,7 +27,7 @@ dataset:
     0: ripe
   # root_dir: 'strawberry_cls'
   root_dir: 'data/blueberry_cls_v4'
-  batch_size: 16
+  batch_size: 8
   num_workers: 8
 
 augmentation:
