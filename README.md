@@ -2,7 +2,9 @@
 
 针对蓝莓 / 草莓采摘场景的轻量化目标检测模型训练、验证与量化部署工具库。本仓库是瑞萨 RA8P1 嵌入式采摘系统（主控 Cortex-M85 + Arm Ethos-U NPU）配套的**模型侧代码**：在 PC 端完成 YOLOv12n 的训练、ONNX 导出与 TFLite int8 量化，产出的轻量模型最终部署到 Ethos-U NPU 上做实时推理。
 
+![alt text](imgs/tu5.jpg)
 ## 主要功能
+
 
 - **优化的 YOLOv12n 模型**：`cfgs/yolov12.yaml` 定义了一个面向嵌入式部署裁剪的轻量结构 —— 输入 `160×160`、单类（`nc=1`）、骨干 + `A2C2f` + **两尺度检测头**（P3/P4，去掉 P5 大目标头），在保持检测精度的同时显著降低算力与内存开销。
 - **自定义训练循环**：`trainer.py` 基于 Ultralytics 底层 `DetectionModel` / 数据集构建器 / ops 实现，支持：
@@ -13,7 +15,7 @@
   - mAP50 / mAP50-95 / Precision / Recall / F1 等指标评估与 TensorBoard 可视化
 - **轻量检测指标**：`metrics.py` 提供 Precision/Recall/F1、AP、mAP@0.5、mAP@0.5:0.95 及推理速度（延迟/FPS）统计；`utils.py` 提供 sigmoid / 坐标转换 / IOU / NMS 等后处理。
 - **量化部署流水线**：`export.ipynb` 完成 `PyTorch → ONNX(opset 12) → onnxsim/onnxslim 简化 → onnx2tf → TFLite`，支持 `full_integer_quant`(int8)、`int16 act`、`dynamic_range`、`float16`、`float32` 多种量化方式，并对 int8 模型的 sigmoid 查找表与量化精度进行分析。
-- **推理与测试**：`test.ipynb` 支持 PyTorch 模型推理、ONNX Runtime 测试、C 头文件导出（`input_chw.h` / `input.h`）以及 RTT 输出结果可视化，打通从训练到嵌入式落地的完整链路。
+- **推理与测试**：`test.ipynb` 支持 PyTorch 模型推理、ONNX Runtime 测试、C 头文件导出（`input_chw.h` / `input.h`）以及 RTT 输出结果可视化，打通从训练到嵌入式落地的链路。
 
 ## 目录结构
 
@@ -35,13 +37,12 @@
 │   └── strawberry_cls      # 草莓成熟度数据集（fullripe/semiripe/unripe 3 类）
 ├── ckpts/                  # 训练输出的模型权重
 ├── logs/                   # TensorBoard 日志与各版本权重（v1/v4/v4.1）
-├── onnx/                   # 各版本导出的 ONNX 与 TFLite 量化模型（v2~v5）
 └── pts/yolov12n.pt         # 预训练权重
 ```
 
 ## 环境安装
 
-1. 前往 <https://pytorch.org/get-started/locally/> 安装 `torch` / `torchvision`（建议 CUDA 版本）。
+1. 前往 <https://pytorch.org/get-started/locally/> 安装 `torch` / `torchvision`。
 2. 执行 `pip install -r requirements.txt` 安装其余依赖。
 
 量化导出还需额外安装：`onnx`、`onnxsim`、`onnxslim`、`onnx2tf`、`tensorflow`、`onnxruntime`、`fvcore`。
